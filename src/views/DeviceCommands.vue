@@ -91,10 +91,10 @@
           </el-select>
         </el-form-item>
         <el-form-item label="请求码流" prop="reqStream">
-          <el-input v-model="commandForm.reqStream" placeholder="请输入请求码流" @input="handleReqStreamChange" />
+          <el-input class="monospace-input" v-model="commandForm.reqStream" placeholder="请输入请求码流" @input="handleReqStreamChange" />
         </el-form-item>
         <el-form-item label="响应码流" prop="resStream">
-          <el-input v-model="commandForm.resStream" placeholder="请输入响应码流" />
+          <el-input class="monospace-input" v-model="commandForm.resStream" placeholder="请输入响应码流" />
         </el-form-item>
         <el-form-item label="存储键" prop="storeKey">
           <el-input v-model="commandForm.storeKey" placeholder="请输入存储键" />
@@ -264,9 +264,9 @@ const rules = {
   reqStream: [
     { required: true, message: '请输入请求码流', trigger: 'blur' }
   ],
-  resStream: [
-    { required: true, message: '请输入响应码流', trigger: 'blur' }
-  ]
+  // resStream: [
+  //   { required: true, message: '请输入响应码流', trigger: 'blur' }
+  // ]
 }
 
 // 获取命令列表
@@ -334,12 +334,7 @@ const handleDelete = async (row: CommandForm) => {
 
 // 处理请求码流变化
 const handleReqStreamChange = (value: string) => {
-  console.log(value);
-  // 当请求码流中包含以'[$' 开头 和以 ']' 结尾格式的字符时，在参数列表中添加一个参数，并设置参数标签为这个字符串，若参数列表中已存在该参数，则不添加
-  // 请求码流中可能存在多个这样的字符串，需要遍历所有字符串，并添加到参数列表中
-  // 中间的字符可以为任意字符，但需要匹配到
-  const matches = value.match(/\[\$(\d+)\]/g) 
-  console.log(matches);
+  const matches = value.match(/\[\$(.+)\|(.+)\]/g) 
   if (matches) {
     matches.forEach(match => {
       const paramLabel = match
@@ -495,5 +490,12 @@ onMounted(() => {
 .param-item:last-child {
   margin-bottom: 0;
   border-bottom: none;
+}
+
+.monospace-input :deep(.el-input__inner) {
+  font-family: 'Courier New', Courier, monospace !important;
+  letter-spacing: 0.1em;
+  font-size: 14px !important;
+  font-weight: bold !important;
 }
 </style> 

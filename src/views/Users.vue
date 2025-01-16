@@ -91,7 +91,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance } from 'element-plus'
-import { getUserList, register, editUser, deleteUser } from '@/api'
+import { getUserList, addUser, editUser, deleteUser } from '@/api'
 import Pagination from '@/components/Pagination.vue'
 
 interface UserForm {
@@ -228,7 +228,7 @@ const handleSubmit = async () => {
           await editUser(userForm)
           ElMessage.success('编辑成功')
         } else {
-          await register(userForm)
+          await addUser(userForm)
           ElMessage.success('新增成功')
         }
         dialogVisible.value = false

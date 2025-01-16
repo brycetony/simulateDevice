@@ -70,6 +70,10 @@ export const changePassword = (data: any) => {
   return instance.post('/auth/change-password', data)
 }
 
+export const addUser = (data: any) => {
+  return instance.post('/users/add', data)
+}
+
 export const editUser = (data: any) => {
   return instance.put(`/users/edit`, data)
 }
