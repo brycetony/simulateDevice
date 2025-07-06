@@ -29,20 +29,20 @@
       </template>
 
       <el-table :data="commandList" v-loading="loading" style="width: 100%">
-        <el-table-column prop="commandName" label="命令名称" />
-        <el-table-column prop="commandType" label="命令类型" >
+        <el-table-column prop="commandName" label="命令名称" width="200"/>
+        <el-table-column prop="commandType" label="命令类型" width="120">
           <template #default="{ row }">
             <el-tag type="success">{{ row.commandType }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="streamType" label="码流类型">
+        <el-table-column prop="streamType" label="码流类型" width="120">
           <template #default="{ row }">
             <el-tag>{{ row.streamType }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="reqStream" label="请求码流" show-overflow-tooltip />
         <el-table-column prop="resStream" label="响应码流" show-overflow-tooltip />
-        <el-table-column prop="storeKey" label="存储键" />
+        <el-table-column prop="storeKey" label="存储键" width="180" />
         <el-table-column label="操作" width="200">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>

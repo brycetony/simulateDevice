@@ -118,10 +118,185 @@
               <div class="form-actions">
                 <el-button type="primary" @click="handleFormatJSON">格式化</el-button>
                 <el-button type="primary" @click="handleCompressJSON">压缩</el-button>
+                <el-button type="primary" @click="handleCopy">复制</el-button>
                 <el-button @click="handleClearJSON">清空</el-button>
               </div>
             </el-form-item>
             
+          </el-form>
+        </el-tab-pane>
+
+        <!-- 新增哈希生成器标签页 -->
+        <el-tab-pane label="哈希生成器" name="hash">
+          <el-form :model="hashForm" label-width="120px">
+            <el-form-item label="输入文本">
+              <el-input
+                v-model="hashForm.input"
+                type="textarea"
+                :rows="5"
+                placeholder="请输入要计算哈希的文本"
+              />
+            </el-form-item>
+            <el-form-item label="哈希算法">
+              <el-select v-model="hashForm.algorithm" style="width: 200px">
+                <el-option label="MD5" value="md5" />
+                <el-option label="SHA-1" value="sha1" />
+                <el-option label="SHA-256" value="sha256" />
+                <el-option label="SHA-512" value="sha512" />
+              </el-select>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="handleGenerateHash">生成哈希</el-button>
+              <el-button @click="handleCopyHash" v-if="hashForm.result">复制结果</el-button>
+            </el-form-item>
+            <el-form-item label="哈希结果" v-if="hashForm.result">
+              <el-input v-model="hashForm.result" readonly />
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+
+        <!-- 新增密码生成器标签页 -->
+        <el-tab-pane label="密码生成器" name="password">
+          <el-form :model="passwordForm" label-width="120px">
+            <el-form-item label="密码长度">
+              <el-input-number v-model="passwordForm.length" :min="6" :max="64" />
+            </el-form-item>
+            <el-form-item label="包含字符">
+              <el-checkbox-group v-model="passwordForm.options">
+                <el-checkbox label="uppercase">大写字母</el-checkbox>
+                <el-checkbox label="lowercase">小写字母</el-checkbox>
+                <el-checkbox label="numbers">数字</el-checkbox>
+                <el-checkbox label="symbols">特殊字符</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="handleGeneratePassword">生成密码</el-button>
+              <el-button @click="handleCopyPassword" v-if="passwordForm.result">复制密码</el-button>
+            </el-form-item>
+            <el-form-item label="生成的密码" v-if="passwordForm.result">
+              <el-input v-model="passwordForm.result" readonly />
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+
+        <!-- 新增加密解密工具标签页 -->
+        <el-tab-pane label="加密解密" name="crypto">
+          <el-form :model="cryptoForm" label-width="120px">
+            <el-form-item label="操作类型">
+              <el-radio-group v-model="cryptoForm.mode">
+                <el-radio label="encrypt">加密</el-radio>
+                <el-radio label="decrypt">解密</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="加密算法">
+              <el-select v-model="cryptoForm.algorithm" style="width: 200px">
+                <el-option label="AES" value="aes" />
+                <el-option label="DES" value="des" />
+                <el-option label="3DES" value="tripledes" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="密钥">
+              <el-input v-model="cryptoForm.key" placeholder="请输入密钥" show-password />
+            </el-form-item>
+            <el-form-item :label="cryptoForm.mode === 'encrypt' ? '明文' : '密文'">
+              <el-input
+                v-model="cryptoForm.input"
+                type="textarea"
+                :rows="5"
+                :placeholder="cryptoForm.mode === 'encrypt' ? '请输入要加密的文本' : '请输入要解密的文本'"
+              />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="handleCrypto">
+                {{ cryptoForm.mode === 'encrypt' ? '加密' : '解密' }}
+              </el-button>
+              <el-button @click="handleCopyCrypto" v-if="cryptoForm.result">复制结果</el-button>
+            </el-form-item>
+            <el-form-item :label="cryptoForm.mode === 'encrypt' ? '密文' : '明文'" v-if="cryptoForm.result">
+              <el-input
+                v-model="cryptoForm.result"
+                type="textarea"
+                :rows="5"
+                readonly
+              />
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+
+        <!-- 正则表达式测试器 -->
+        <el-tab-pane label="正则测试" name="regex">
+          <el-form :model="regexForm" label-width="120px">
+            <el-form-item label="测试文本">
+              <el-input
+                v-model="regexForm.input"
+                type="textarea"
+                :rows="5"
+                placeholder="请输入要测试的文本"
+              />
+            </el-form-item>
+            <el-form-item label="正则表达式">
+              <el-input
+                v-model="regexForm.pattern"
+                placeholder="请输入正则表达式，例如：\w+"
+              >
+                <template #prepend>/</template>
+                <template #append>/</template>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="选项">
+              <el-checkbox-group v-model="regexForm.flags">
+                <el-checkbox label="g">全局匹配</el-checkbox>
+                <el-checkbox label="i">忽略大小写</el-checkbox>
+                <el-checkbox label="m">多行匹配</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="handleTestRegex">测试匹配</el-button>
+              <el-button @click="handleClearRegex">清空</el-button>
+            </el-form-item>
+            <el-form-item label="匹配结果" v-if="regexForm.matches.length > 0">
+              <el-table :data="regexForm.matches" style="width: 100%">
+                <el-table-column prop="index" label="序号" width="80" />
+                <el-table-column prop="match" label="匹配内容" />
+                <el-table-column prop="position" label="位置" width="120" />
+              </el-table>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+
+        <!-- 编码解码工具 -->
+        <el-tab-pane label="编码解码" name="encode">
+          <el-form :model="encodeForm" label-width="120px">
+            <el-form-item label="输入文本">
+              <el-input
+                v-model="encodeForm.input"
+                type="textarea"
+                :rows="5"
+                placeholder="请输入要处理的文本"
+              />
+            </el-form-item>
+            <el-form-item>
+              <div class="form-actions">
+                <el-button-group>
+                  <el-button type="primary" @click="handleURLEncode">URL编码</el-button>
+                  <el-button type="primary" @click="handleURLDecode">URL解码</el-button>
+                </el-button-group>
+                <el-button-group>
+                  <el-button type="primary" @click="handleBase64Encode">Base64编码</el-button>
+                  <el-button type="primary" @click="handleBase64Decode">Base64解码</el-button>
+                </el-button-group>
+                <el-button @click="handleCopyEncode" v-if="encodeForm.result">复制结果</el-button>
+                <el-button @click="handleClearEncode">清空</el-button>
+              </div>
+            </el-form-item>
+            <el-form-item label="处理结果" v-if="encodeForm.result">
+              <el-input
+                v-model="encodeForm.result"
+                type="textarea"
+                :rows="5"
+                readonly
+              />
+            </el-form-item>
           </el-form>
         </el-tab-pane>
       </el-tabs>
@@ -136,7 +311,8 @@ import {
   hexToText, textToHex, formatHex, hexToBase64, base64ToHex,
   calculateChecksum, calculateXOR, calculateCRC16Modbus,
   calculateCRC16CCITT, calculateCRC16XMODEM, calculateCRC32
-} from '@/api'
+} from '../api'
+import CryptoJS from 'crypto-js'
 
 const activeTab = ref('string')
 
@@ -170,6 +346,43 @@ const jsonForm = reactive({
   input: '',
   isFormatted: false,
   highlighted: ''
+})
+
+// 哈希生成器表单
+const hashForm = reactive({
+  input: '',
+  algorithm: 'md5',
+  result: ''
+})
+
+// 密码生成器表单
+const passwordForm = reactive({
+  length: 16,
+  options: ['uppercase', 'lowercase', 'numbers', 'symbols'],
+  result: ''
+})
+
+// 加密解密表单
+const cryptoForm = reactive({
+  mode: 'encrypt',
+  algorithm: 'aes',
+  key: '',
+  input: '',
+  result: ''
+})
+
+// 正则表达式测试表单
+const regexForm = reactive({
+  input: '',
+  pattern: '',
+  flags: ['g'],
+  matches: [] as { index: number; match: string; position: string }[]
+})
+
+// 编码解码表单
+const encodeForm = reactive({
+  input: '',
+  result: ''
 })
 
 // 处理模式切换
@@ -221,6 +434,7 @@ const handleHexToBase64 = async () => {
   if (stringForm.mode !== 'hex') {
     ElMessage.warning('请先将数据转换为十六进制格式')
     return
+
   }
   try {
     const res = await hexToBase64({ hex: stringForm.input })
@@ -485,6 +699,267 @@ const highlightJSON = () => {
     ElMessage.error('无效的JSON格式')
   }
 }
+
+const handleCopy = () => {
+  if (jsonForm.input) {
+    navigator.clipboard.writeText(jsonForm.input)
+    ElMessage.success('复制成功')
+  }
+}
+
+// 生成哈希
+const handleGenerateHash = () => {
+  if (!hashForm.input) {
+    ElMessage.warning('请输入要计算哈希的文本')
+    return
+  }
+
+  try {
+    switch (hashForm.algorithm) {
+      case 'md5':
+        hashForm.result = CryptoJS.MD5(hashForm.input).toString()
+        break
+      case 'sha1':
+        hashForm.result = CryptoJS.SHA1(hashForm.input).toString()
+        break
+      case 'sha256':
+        hashForm.result = CryptoJS.SHA256(hashForm.input).toString()
+        break
+      case 'sha512':
+        hashForm.result = CryptoJS.SHA512(hashForm.input).toString()
+        break
+    }
+    ElMessage.success('哈希生成成功')
+  } catch (error) {
+    ElMessage.error('哈希生成失败')
+  }
+}
+
+// 生成密码
+const handleGeneratePassword = () => {
+  if (passwordForm.options.length === 0) {
+    ElMessage.warning('请至少选择一种字符类型')
+    return
+  }
+
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz'
+  const numbers = '0123456789'
+  const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?'
+
+  let chars = ''
+  if (passwordForm.options.includes('uppercase')) chars += uppercase
+  if (passwordForm.options.includes('lowercase')) chars += lowercase
+  if (passwordForm.options.includes('numbers')) chars += numbers
+  if (passwordForm.options.includes('symbols')) chars += symbols
+
+  let password = ''
+  for (let i = 0; i < passwordForm.length; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+
+  passwordForm.result = password
+  ElMessage.success('密码生成成功')
+}
+
+// 加密解密
+const handleCrypto = () => {
+  if (!cryptoForm.input || !cryptoForm.key) {
+    ElMessage.warning('请输入完整信息')
+    return
+  }
+
+  try {
+    const key = CryptoJS.enc.Utf8.parse(cryptoForm.key)
+    
+    if (cryptoForm.mode === 'encrypt') {
+      switch (cryptoForm.algorithm) {
+        case 'aes':
+          cryptoForm.result = CryptoJS.AES.encrypt(cryptoForm.input, key, {
+            mode: CryptoJS.mode.ECB,
+            padding: CryptoJS.pad.Pkcs7
+          }).toString()
+          break
+        case 'des':
+          cryptoForm.result = CryptoJS.DES.encrypt(cryptoForm.input, key, {
+            mode: CryptoJS.mode.ECB,
+            padding: CryptoJS.pad.Pkcs7
+          }).toString()
+          break
+        case 'tripledes':
+          cryptoForm.result = CryptoJS.TripleDES.encrypt(cryptoForm.input, key, {
+            mode: CryptoJS.mode.ECB,
+            padding: CryptoJS.pad.Pkcs7
+          }).toString()
+          break
+      }
+    } else {
+      switch (cryptoForm.algorithm) {
+        case 'aes':
+          cryptoForm.result = CryptoJS.AES.decrypt(cryptoForm.input, key, {
+            mode: CryptoJS.mode.ECB,
+            padding: CryptoJS.pad.Pkcs7
+          }).toString(CryptoJS.enc.Utf8)
+          break
+        case 'des':
+          cryptoForm.result = CryptoJS.DES.decrypt(cryptoForm.input, key, {
+            mode: CryptoJS.mode.ECB,
+            padding: CryptoJS.pad.Pkcs7
+          }).toString(CryptoJS.enc.Utf8)
+          break
+        case 'tripledes':
+          cryptoForm.result = CryptoJS.TripleDES.decrypt(cryptoForm.input, key, {
+            mode: CryptoJS.mode.ECB,
+            padding: CryptoJS.pad.Pkcs7
+          }).toString(CryptoJS.enc.Utf8)
+          break
+      }
+    }
+    ElMessage.success(cryptoForm.mode === 'encrypt' ? '加密成功' : '解密成功')
+  } catch (error) {
+    ElMessage.error(cryptoForm.mode === 'encrypt' ? '加密失败' : '解密失败')
+    cryptoForm.result = ''
+  }
+}
+
+// 复制结果
+const handleCopyHash = () => {
+  navigator.clipboard.writeText(hashForm.result)
+    .then(() => ElMessage.success('复制成功'))
+    .catch(() => ElMessage.error('复制失败'))
+}
+
+const handleCopyPassword = () => {
+  navigator.clipboard.writeText(passwordForm.result)
+    .then(() => ElMessage.success('复制成功'))
+    .catch(() => ElMessage.error('复制失败'))
+}
+
+const handleCopyCrypto = () => {
+  navigator.clipboard.writeText(cryptoForm.result)
+    .then(() => ElMessage.success('复制成功'))
+    .catch(() => ElMessage.error('复制失败'))
+}
+
+// 处理正则表达式测试
+const handleTestRegex = () => {
+  if (!regexForm.input || !regexForm.pattern) {
+    ElMessage.warning('请输入测试文本和正则表达式')
+    return
+  }
+
+  try {
+    const flags = regexForm.flags.join('')
+    const regex = new RegExp(regexForm.pattern, flags)
+    const matches: { index: number; match: string; position: string }[] = []
+    let match
+
+    if (flags.includes('g')) {
+      let index = 1
+      while ((match = regex.exec(regexForm.input)) !== null) {
+        matches.push({
+          index,
+          match: match[0],
+          position: `${match.index}-${match.index + match[0].length}`
+        })
+        index++
+      }
+    } else {
+      match = regex.exec(regexForm.input)
+      if (match) {
+        matches.push({
+          index: 1,
+          match: match[0],
+          position: `${match.index}-${match.index + match[0].length}`
+        })
+      }
+    }
+
+    regexForm.matches = matches
+    if (matches.length === 0) {
+      ElMessage.info('未找到匹配项')
+    }
+  } catch (error: any) {
+    ElMessage.error('正则表达式语法错误：' + error.message)
+  }
+}
+
+// 清空正则表达式测试
+const handleClearRegex = () => {
+  regexForm.input = ''
+  regexForm.pattern = ''
+  regexForm.flags = ['g']
+  regexForm.matches = []
+}
+
+// URL编码
+const handleURLEncode = () => {
+  if (!encodeForm.input) {
+    ElMessage.warning('请输入要编码的文本')
+    return
+  }
+  try {
+    encodeForm.result = encodeURIComponent(encodeForm.input)
+    ElMessage.success('URL编码成功')
+  } catch (error) {
+    ElMessage.error('URL编码失败')
+  }
+}
+
+// URL解码
+const handleURLDecode = () => {
+  if (!encodeForm.input) {
+    ElMessage.warning('请输入要解码的文本')
+    return
+  }
+  try {
+    encodeForm.result = decodeURIComponent(encodeForm.input)
+    ElMessage.success('URL解码成功')
+  } catch (error) {
+    ElMessage.error('URL解码失败')
+  }
+}
+
+// Base64编码
+const handleBase64Encode = () => {
+  if (!encodeForm.input) {
+    ElMessage.warning('请输入要编码的文本')
+    return
+  }
+  try {
+    encodeForm.result = btoa(encodeURIComponent(encodeForm.input))
+    ElMessage.success('Base64编码成功')
+  } catch (error) {
+    ElMessage.error('Base64编码失败')
+  }
+}
+
+// Base64解码
+const handleBase64Decode = () => {
+  if (!encodeForm.input) {
+    ElMessage.warning('请输入要解码的文本')
+    return
+  }
+  try {
+    encodeForm.result = decodeURIComponent(atob(encodeForm.input))
+    ElMessage.success('Base64解码成功')
+  } catch (error) {
+    ElMessage.error('Base64解码失败')
+  }
+}
+
+// 复制编码结果
+const handleCopyEncode = () => {
+  navigator.clipboard.writeText(encodeForm.result)
+    .then(() => ElMessage.success('复制成功'))
+    .catch(() => ElMessage.error('复制失败'))
+}
+
+// 清空编码表单
+const handleClearEncode = () => {
+  encodeForm.input = ''
+  encodeForm.result = ''
+}
 </script>
 
 <style>
@@ -609,5 +1084,15 @@ const highlightJSON = () => {
 .json-editor pre::-webkit-scrollbar-thumb:hover,
 .json-editor textarea::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+.el-form {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.el-checkbox-group {
+  display: flex;
+  gap: 20px;
 }
 </style> 

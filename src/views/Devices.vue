@@ -13,15 +13,15 @@
 
       <el-table :data="deviceList" v-loading="loading" style="width: 100%">
         <el-table-column prop="_id" label="设备ID" width="220" />
-        <el-table-column prop="deviceName" label="设备名称" />
+        <el-table-column prop="deviceName" label="设备名称"/>
         <el-table-column prop="deviceType" label="设备类型" />
-        <el-table-column prop="protocol" label="设备协议">
+        <el-table-column prop="protocol" label="设备协议" width="120">
           <template #default="{ row }">
             <el-tag>{{ row.protocol }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="devicePort" label="设备端口" />
-        <el-table-column prop="status" label="状态">
+        <el-table-column prop="devicePort" label="设备端口" width="100" />
+        <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
             <el-switch v-model="row.deviceStatus" @change="handleStatusChange(row._id, $event)" />
           </template>
