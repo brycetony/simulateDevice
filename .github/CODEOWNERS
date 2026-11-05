@@ -1,0 +1,7 @@
+# 契约 / 决策 / 故障库是判据源头：实现可以改，判据的改动必须经 owner 复核。
+# 依赖 GitHub branch protection 的 "Require review from Code Owners" 生效——
+# 只放这个文件、不开 branch protection，等于没放。
+
+/docs/contracts/    @brycetony
+/docs/decisions/    @brycetony
+/docs/faults/       @brycetony
