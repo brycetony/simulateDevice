@@ -307,12 +307,15 @@
 <script lang="ts" setup>
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
-import { 
+import {
   hexToText, textToHex, formatHex, hexToBase64, base64ToHex,
   calculateChecksum, calculateXOR, calculateCRC16Modbus,
   calculateCRC16CCITT, calculateCRC16XMODEM, calculateCRC32
 } from '../api'
-import CryptoJS from 'crypto-js'
+import {
+  generatePassword, generateHash, encryptText, decryptText,
+  encodeBase64, decodeBase64, highlightJson
+} from '../utils/tools'
 
 const activeTab = ref('string')
 
@@ -657,43 +660,13 @@ const handleClearJSON = () => {
   jsonForm.highlighted = ''
 }
 
-// 高亮JSON
+// 高亮JSON（TOOLS-07 XSS 不变量，纯函数在 src/utils/tools.ts）
 const highlightJSON = () => {
   const input = jsonForm.input
   if (!input) return
 
   try {
-    // 格式化JSON
-    const obj = JSON.parse(input)
-    const formatted = JSON.stringify(obj, null, 2)
-
-    // 转义HTML字符
-    let highlighted = formatted
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-
-    // 处理所有JSON元素的高亮
-    highlighted = highlighted
-      // 处理键名
-      .replace(/"([^"]+)"(?=\s*:)/g, '<span class="json-key">"$1"</span>')
-      // 处理字符串值
-      .replace(/:\s*"([^"]+)"/g, ': <span class="json-string">"$1"</span>')
-      // 处理数字
-      .replace(/:\s*(-?\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
-      // 处理布尔值和null
-      .replace(/:\s*(true|false|null)\b/g, ': <span class="json-boolean">$1</span>')
-      // 处理括号
-      .replace(/([{}\[\]])/g, '<span class="json-bracket">$1</span>')
-      // 处理逗号
-      .replace(/,\n/g, '<span class="json-comma">,</span>\n')
-
-    // 最后处理空格和换行
-    highlighted = highlighted
-      .replace(/\n/g, '<br>')
-      .replace(/ {2}/g, '&nbsp;&nbsp;')
-
-    jsonForm.highlighted = highlighted
+    jsonForm.highlighted = highlightJson(input)
     jsonForm.isFormatted = true
   } catch (error) {
     ElMessage.error('无效的JSON格式')
@@ -707,7 +680,7 @@ const handleCopy = () => {
   }
 }
 
-// 生成哈希
+// 生成哈希（TOOLS-08 小写 hex，判据见 docs/contracts/tools.md）
 const handleGenerateHash = () => {
   if (!hashForm.input) {
     ElMessage.warning('请输入要计算哈希的文本')
@@ -715,110 +688,65 @@ const handleGenerateHash = () => {
   }
 
   try {
-    switch (hashForm.algorithm) {
-      case 'md5':
-        hashForm.result = CryptoJS.MD5(hashForm.input).toString()
-        break
-      case 'sha1':
-        hashForm.result = CryptoJS.SHA1(hashForm.input).toString()
-        break
-      case 'sha256':
-        hashForm.result = CryptoJS.SHA256(hashForm.input).toString()
-        break
-      case 'sha512':
-        hashForm.result = CryptoJS.SHA512(hashForm.input).toString()
-        break
-    }
+    hashForm.result = generateHash(hashForm.input, hashForm.algorithm)
     ElMessage.success('哈希生成成功')
   } catch (error) {
     ElMessage.error('哈希生成失败')
   }
 }
 
-// 生成密码
+// 生成密码（TOOLS-01 CSPRNG / TOOLS-02 类别覆盖，判据见 docs/contracts/tools.md）
 const handleGeneratePassword = () => {
   if (passwordForm.options.length === 0) {
     ElMessage.warning('请至少选择一种字符类型')
     return
   }
 
-  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  const lowercase = 'abcdefghijklmnopqrstuvwxyz'
-  const numbers = '0123456789'
-  const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?'
-
-  let chars = ''
-  if (passwordForm.options.includes('uppercase')) chars += uppercase
-  if (passwordForm.options.includes('lowercase')) chars += lowercase
-  if (passwordForm.options.includes('numbers')) chars += numbers
-  if (passwordForm.options.includes('symbols')) chars += symbols
-
-  let password = ''
-  for (let i = 0; i < passwordForm.length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length))
+  try {
+    passwordForm.result = generatePassword({
+      length: passwordForm.length,
+      uppercase: passwordForm.options.includes('uppercase'),
+      lowercase: passwordForm.options.includes('lowercase'),
+      numbers: passwordForm.options.includes('numbers'),
+      symbols: passwordForm.options.includes('symbols')
+    })
+    ElMessage.success('密码生成成功')
+  } catch (error: any) {
+    ElMessage.error(error.message || '密码生成失败')
   }
-
-  passwordForm.result = password
-  ElMessage.success('密码生成成功')
 }
 
-// 加密解密
+// 加密解密（TOOLS-03 ECB 有意保留 / TOOLS-04 失败显式提示，判据见 docs/contracts/tools.md）
 const handleCrypto = () => {
   if (!cryptoForm.input || !cryptoForm.key) {
     ElMessage.warning('请输入完整信息')
     return
   }
 
-  try {
-    const key = CryptoJS.enc.Utf8.parse(cryptoForm.key)
-    
-    if (cryptoForm.mode === 'encrypt') {
-      switch (cryptoForm.algorithm) {
-        case 'aes':
-          cryptoForm.result = CryptoJS.AES.encrypt(cryptoForm.input, key, {
-            mode: CryptoJS.mode.ECB,
-            padding: CryptoJS.pad.Pkcs7
-          }).toString()
-          break
-        case 'des':
-          cryptoForm.result = CryptoJS.DES.encrypt(cryptoForm.input, key, {
-            mode: CryptoJS.mode.ECB,
-            padding: CryptoJS.pad.Pkcs7
-          }).toString()
-          break
-        case 'tripledes':
-          cryptoForm.result = CryptoJS.TripleDES.encrypt(cryptoForm.input, key, {
-            mode: CryptoJS.mode.ECB,
-            padding: CryptoJS.pad.Pkcs7
-          }).toString()
-          break
-      }
-    } else {
-      switch (cryptoForm.algorithm) {
-        case 'aes':
-          cryptoForm.result = CryptoJS.AES.decrypt(cryptoForm.input, key, {
-            mode: CryptoJS.mode.ECB,
-            padding: CryptoJS.pad.Pkcs7
-          }).toString(CryptoJS.enc.Utf8)
-          break
-        case 'des':
-          cryptoForm.result = CryptoJS.DES.decrypt(cryptoForm.input, key, {
-            mode: CryptoJS.mode.ECB,
-            padding: CryptoJS.pad.Pkcs7
-          }).toString(CryptoJS.enc.Utf8)
-          break
-        case 'tripledes':
-          cryptoForm.result = CryptoJS.TripleDES.decrypt(cryptoForm.input, key, {
-            mode: CryptoJS.mode.ECB,
-            padding: CryptoJS.pad.Pkcs7
-          }).toString(CryptoJS.enc.Utf8)
-          break
-      }
+  if (cryptoForm.mode === 'encrypt') {
+    try {
+      cryptoForm.result = encryptText(cryptoForm.input, cryptoForm.key, cryptoForm.algorithm)
+      ElMessage.success('加密成功')
+    } catch (error: any) {
+      // TOOLS-09：密钥长度等校验信息直接透出
+      ElMessage.error(error.message || '加密失败')
+      cryptoForm.result = ''
     }
-    ElMessage.success(cryptoForm.mode === 'encrypt' ? '加密成功' : '解密成功')
-  } catch (error) {
-    ElMessage.error(cryptoForm.mode === 'encrypt' ? '加密失败' : '解密失败')
-    cryptoForm.result = ''
+  } else {
+    const result = decryptText(cryptoForm.input, cryptoForm.key, cryptoForm.algorithm)
+    if (result.ok) {
+      cryptoForm.result = result.value
+      ElMessage.success('解密成功')
+    } else {
+      // TOOLS-04/09：解密失败显式提示原因，禁止静默置空
+      cryptoForm.result = ''
+      const messages: Record<string, string> = {
+        'invalid-input': '密文不是合法的 Base64 格式',
+        'invalid-key': '密钥长度不符合算法要求（AES 16/24/32、DES 8、3DES 24 字节）',
+        failed: '解密失败：密钥错误或数据损坏'
+      }
+      ElMessage.error(messages[result.reason] || '解密失败')
+    }
   }
 }
 
@@ -920,28 +848,28 @@ const handleURLDecode = () => {
   }
 }
 
-// Base64编码
+// Base64编码（TOOLS-05 变体编码，判据见 docs/contracts/tools.md）
 const handleBase64Encode = () => {
   if (!encodeForm.input) {
     ElMessage.warning('请输入要编码的文本')
     return
   }
   try {
-    encodeForm.result = btoa(encodeURIComponent(encodeForm.input))
+    encodeForm.result = encodeBase64(encodeForm.input)
     ElMessage.success('Base64编码成功')
   } catch (error) {
     ElMessage.error('Base64编码失败')
   }
 }
 
-// Base64解码
+// Base64解码（TOOLS-05）
 const handleBase64Decode = () => {
   if (!encodeForm.input) {
     ElMessage.warning('请输入要解码的文本')
     return
   }
   try {
-    encodeForm.result = decodeURIComponent(atob(encodeForm.input))
+    encodeForm.result = decodeBase64(encodeForm.input)
     ElMessage.success('Base64解码成功')
   } catch (error) {
     ElMessage.error('Base64解码失败')
