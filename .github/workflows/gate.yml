@@ -2,6 +2,8 @@ name: gate
 # 质量门禁：检查不过，PR 不能合并。
 # 关键点：门禁由系统强制执行（branch protection），不依赖 agent "记得遵守"。
 # 原则：凡是机器能判定的，不留给人的自觉——AGENTS.md 是宣言，这里是落地。
+# 顺序原则：便宜的纯结构检查在前（不装依赖、快速失败），跑测试的步骤最后——
+# 否则一个步骤失败会跳过其后所有步骤（GitHub Actions 默认行为），看不到检查全貌。
 # 注意：本仓库默认分支是 master；新增契约域时同步更新下方 PREFIXES（与 AGENTS.md §6 注册表一致）。
 
 on:
@@ -13,14 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }   # diff 类检查需要完整历史
-      - uses: actions/setup-node@v4
-        with: { node-version: "22", cache: "npm" }
-      - run: npm ci
-
-      # 第一批契约测试落库前此步为红（无测试文件）——这是特性不是缺陷：
-      # 没有契约测试就不该有合并。启用 required 前先完成裁决回填（见 docs/tasks/RESEARCH-tools-2026-11-04.md）。
-      - name: 契约测试 + 历史故障回归（一票否决）
-        run: npx vitest run tests/contracts tests/faults
 
       - name: PR 必须挂任务卡（T-xxx），且卡片真实存在
         env: { PR_BODY: "${{ github.event.pull_request.body }}" }
@@ -72,3 +66,11 @@ jobs:
           if [ "$total" -gt 800 ]; then
             echo "diff $total 行 > 800：请拆分任务后再提交（AGENTS.md §3）"; exit 1
           fi
+
+      # 测试步骤放最后：装依赖贵、且本批（bootstrap PR）预期无测试文件会红——
+      # 放前面会跳过上面所有结构检查。启用 branch protection 前，bootstrap PR 允许带红合并。
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: "npm" }
+      - run: npm ci
+      - name: 契约测试 + 历史故障回归（一票否决）
+        run: npx vitest run tests/contracts tests/faults
