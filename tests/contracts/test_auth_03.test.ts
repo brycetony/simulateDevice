@@ -21,9 +21,12 @@ describe('AUTH-03 Bearer 附加', () => {
     expect('Authorization' in headers).toBe(false)
   })
 
-  test('已有自定义头不被覆盖', () => {
+  test('已有自定义头不被覆盖；Authorization 碰撞以会话 token 为准（AUTH-03）', () => {
     expect(attachAuthHeader({ 'X-Custom': 'a' }, 't1')).toEqual({
       'X-Custom': 'a',
+      Authorization: 'Bearer t1',
+    })
+    expect(attachAuthHeader({ Authorization: 'Custom scheme' }, 't1')).toEqual({
       Authorization: 'Bearer t1',
     })
   })

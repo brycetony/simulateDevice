@@ -26,7 +26,8 @@
 ## AUTH-03 Bearer 附加 [确认]
 
 有 `token` 时所有 `/api` 请求自动附加 `Authorization: Bearer <token>`；
-无 token 或空串**不得附加空头**；已有自定义头不被覆盖。
+无 token 或空串**不得附加空头**；已有自定义头不被覆盖；`Authorization` 头碰撞时
+**以会话 token 为准**（显式覆盖调用方值）。
 判据：`attachAuthHeader` 对空/null token 的输出不含 Authorization 键。
 测试：tests/contracts/test_auth_03.test.ts
 
@@ -36,7 +37,7 @@
 401 → 提示「未授权，请重新登录」+ **清三键（AUTH-02 全集）** + 跳 `/login`；
 当前已在 `/login` 页时**不整页跳转**（防 reload 抹掉错误提示与表单输入——F-08）。
 判据：401 决策 = 清键集合等于三键全集；`redirectTargetOn401('/login')` 返回 null。
-测试：批 1b 接线 PR 交付（适配器级）。
+测试：tests/contracts/test_auth_04.test.ts
 
 ## AUTH-05 错误文案归一 [确认]（跨域共用约定，暂挂本文件）
 
@@ -61,7 +62,7 @@
 登出为纯前端行为：清三键（AUTH-02 全集，**不再残留 userInfo/userRole**——F-03）+ 跳 `/login`，
 不调任何后端接口（服务端吊销挂 S6 转后端必答）。手动登出需用户确认。
 判据：`logoutAction()` 清键集合 = 三键全集、redirect='/login'、confirm=true。
-测试：批 1b 接线 PR 交付。
+测试：tests/contracts/test_auth_02.test.ts
 
 ## AUTH-08 改密流程 [确认]
 
@@ -69,7 +70,7 @@
 `userId` 照现状取 `userInfo.id`（字段分歧 `_id`/`id` 挂 [OPEN] C19/Q15）。
 成功后**必须终结会话且不可被确认框打断**（F-05：免确认直接登出——旧 token 留站是陷阱态）。
 判据：`forcedLogoutAction()` confirm=false；`buildChangePasswordPayload` 两摘要独立且为 md5 hex。
-测试：批 1b 接线 PR 交付（payload 部分随 test_auth_01）。
+测试：tests/contracts/test_auth_01.test.ts（payload）/ tests/contracts/test_auth_02.test.ts（强制登出）
 
 ## AUTH-09 用户管理接口形状 [确认]
 
@@ -98,14 +99,14 @@ superadmin 账户不可经 UI：禁用状态开关、删除、以 superadmin 角
 ## AUTH-13 401 并发去重 [确认]（目标行为，随批 1b 生效）
 
 多个请求并发 401 = **一次提示 + 一次跳转**（原状：N 个弹窗叠放 + N 次跳转赋值）。
-判据：`shouldNotifyUnauthorized` 窗口期（默认 1000ms）内仅首次为 true。
-测试：批 1b 接线 PR 交付。
+判据：`shouldNotifyUnauthorized` 窗口期（默认 1000ms）内仅首次为 true；哨兵值 0 = 从未提示。
+测试：tests/contracts/test_auth_13.test.ts
 
 ## AUTH-14 受限路由声明义务 [确认]
 
 需要角色限制的路由**必须**声明 `meta.roles`；未声明视为「登录即可访问」（现状锁定 + 防回归：
 新增子路由漏配 roles 不会静默放开——守卫与路由表分离后可静态检查）。
-测试：批 1b 接线 PR 交付。
+测试：tests/contracts/test_auth_14.test.ts
 
 ---
 

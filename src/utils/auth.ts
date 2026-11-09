@@ -89,12 +89,14 @@ export function redirectTargetOn401(currentPath: string): '/login' | null {
   return currentPath === '/login' ? null : '/login'
 }
 
-/** [AUTH-13] 并发 401 去重：窗口期（默认 1000ms）内仅首次需要提示/跳转。 */
+/** [AUTH-13] 并发 401 去重：窗口期（默认 1000ms）内仅首次需要提示/跳转。
+ * lastNotifiedAt ≤ 0 视为「从未提示」——显式哨兵处理，不依赖时钟天然大于窗口期。 */
 export function shouldNotifyUnauthorized(
   now: number,
   lastNotifiedAt: number,
   windowMs = 1000,
 ): boolean {
+  if (lastNotifiedAt <= 0) return true
   return now - lastNotifiedAt >= windowMs
 }
 
@@ -123,7 +125,8 @@ export function resolveApiErrorMessage(
   const m = body?.message
   if (typeof m === 'string' && m !== '') return m
   if (Array.isArray(m) && m.length > 0) {
-    return m.filter((x): x is string => typeof x === 'string').join(', ')
+    const joined = m.filter((x): x is string => typeof x === 'string').join(', ')
+    if (joined !== '') return joined
   }
   return STATUS_FALLBACK[status] ?? UNKNOWN_ERROR_MESSAGE
 }
@@ -151,12 +154,15 @@ export function resolveGuard(
 
 // ---------- F-12：userInfo 防御性解析 ----------
 
-/** [F-12] null / 非法 JSON / 非对象输入一律返回 {}，不抛错（原状顶层 parse 直接白屏）。 */
+/** [F-12] null / 非法 JSON / 非对象输入（含数组）一律返回 {}，不抛错（原状顶层 parse 直接白屏）。 */
 export function parseUserInfo(raw: string | null): Record<string, unknown> {
   if (!raw) return {}
   try {
     const parsed: unknown = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {}
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>
+    }
+    return {}
   } catch {
     return {}
   }
