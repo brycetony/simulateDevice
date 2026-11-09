@@ -106,7 +106,7 @@ superadmin 账户不可经 UI：禁用状态开关、删除、以 superadmin 角
 
 需要角色限制的路由**必须**声明 `meta.roles`；未声明视为「登录即可访问」（现状锁定 + 防回归：
 新增子路由漏配 roles 不会静默放开——守卫与路由表分离后可静态检查）。
-测试：批 1b 接线 PR 交付。
+测试：tests/contracts/test_auth_14.test.ts
 
 ---
 

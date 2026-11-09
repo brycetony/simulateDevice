@@ -55,8 +55,13 @@ const handleLogin = async () => {
         }
         ElMessage.success('登录成功')
         router.push('/')
-      } catch {
-        // F-01/D1：失败原因已由拦截器统一 toast，此处不再吞掉也不重复弹窗
+      } catch (error) {
+        // F-01/D1：HTTP/网络错误已由拦截器统一 toast，不重复弹窗；
+        // 此处只兜底非 axios 错误——如 2xx 但响应体不符合 AUTH-04 形状导致
+        // sessionWrites 抛 TypeError（原状此路径零反馈）。
+        if (!(error as { isAxiosError?: boolean })?.isAxiosError) {
+          ElMessage.error('登录失败：响应格式异常')
+        }
       } finally {
         loading.value = false
       }
