@@ -5,6 +5,7 @@
  */
 
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
+import { stubEnv, httpError } from '../helpers/harness'
 
 vi.mock('element-plus', () => ({
   ElMessage: { error: vi.fn(), success: vi.fn() },
@@ -12,21 +13,9 @@ vi.mock('element-plus', () => ({
 const { ElMessage } = await import('element-plus')
 const { instance } = await import('../../src/api')
 
-function httpError(status: number, data: unknown) {
-  const err = new Error('adapter: simulated failure') as Error & { response?: unknown }
-  err.response = { status, data }
-  return err
-}
-
 beforeEach(() => {
   ElMessage.error = vi.fn()
-  const store = new Map<string, string>()
-  vi.stubGlobal('localStorage', {
-    getItem: (k: string) => store.get(k) ?? null,
-    setItem: (k: string, v: string) => void store.set(k, v),
-    removeItem: (k: string) => void store.delete(k),
-  })
-  vi.stubGlobal('window', { location: { href: 'http://localhost/', pathname: '/login' } })
+  stubEnv('/login')
 })
 
 afterEach(() => {
@@ -47,7 +36,7 @@ describe('F-01 失败原因直达 UI（拦截器归一）', () => {
   })
 
   test('网络级错误（无响应）→ 固定文案达 UI', async () => {
-    instance.defaults.adapter = () => Promise.reject(new Error('Network Error'))
+    instance.defaults.adapter = () => Promise.reject(httpError(undefined))
     await expect(instance.post('/auth/login', {})).rejects.toBeTruthy()
     expect(ElMessage.error).toHaveBeenCalledWith('网络错误，请稍后重试')
   })

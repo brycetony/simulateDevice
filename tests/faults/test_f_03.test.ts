@@ -4,6 +4,7 @@
  */
 
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
+import { stubEnv, httpError } from '../helpers/harness'
 
 vi.mock('element-plus', () => ({
   ElMessage: { error: vi.fn(), success: vi.fn() },
@@ -12,13 +13,6 @@ const { instance } = await import('../../src/api')
 
 beforeEach(() => {
   vi.useFakeTimers()
-  const store = new Map<string, string>()
-  vi.stubGlobal('localStorage', {
-    getItem: (k: string) => store.get(k) ?? null,
-    setItem: (k: string, v: string) => void store.set(k, v),
-    removeItem: (k: string) => void store.delete(k),
-  })
-  vi.stubGlobal('window', { location: { href: 'http://localhost/', pathname: '/devices' } })
 })
 
 afterEach(() => {
@@ -29,18 +23,11 @@ afterEach(() => {
 describe('F-03 401 清三键', () => {
   test('预置三键齐全 → 401 后三键全部不存在（原状只清 token → 红）', async () => {
     vi.setSystemTime(10_000_000)
-    const store = new Map<string, string>()
-    vi.stubGlobal('localStorage', {
-      getItem: (k: string) => store.get(k) ?? null,
-      setItem: (k: string, v: string) => void store.set(k, v),
-      removeItem: (k: string) => void store.delete(k),
-    })
+    const { store } = stubEnv('/devices')
     store.set('token', 't1')
     store.set('userInfo', '{"id":"u1","email":"a@b.c"}')
     store.set('userRole', 'admin')
-
-    const err = Object.assign(new Error('401'), { response: { status: 401, data: {} } })
-    instance.defaults.adapter = () => Promise.reject(err)
+    instance.defaults.adapter = () => Promise.reject(httpError(401, {}))
 
     await expect(instance.get('/users/list')).rejects.toBeTruthy()
     expect([...store.keys()]).toEqual([])

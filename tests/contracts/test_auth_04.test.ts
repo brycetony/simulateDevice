@@ -7,30 +7,13 @@
  */
 
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
+import { stubEnv, httpError } from '../helpers/harness'
 
 vi.mock('element-plus', () => ({
   ElMessage: { error: vi.fn(), success: vi.fn() },
 }))
 const { ElMessage } = await import('element-plus')
 const { instance } = await import('../../src/api')
-
-function setup(pathname: string) {
-  const store = new Map<string, string>()
-  vi.stubGlobal('localStorage', {
-    getItem: (k: string) => store.get(k) ?? null,
-    setItem: (k: string, v: string) => void store.set(k, v),
-    removeItem: (k: string) => void store.delete(k),
-  })
-  const location = { href: 'http://localhost/', pathname }
-  vi.stubGlobal('window', { location })
-  return { store, location }
-}
-
-function httpError(status: number, data: unknown) {
-  const err = new Error('adapter: simulated failure') as Error & { response?: unknown }
-  err.response = { status, data }
-  return err
-}
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -44,7 +27,7 @@ afterEach(() => {
 
 describe('AUTH-04 剥壳与 401（适配器级）', () => {
   test('2xx 剥壳：返回值即 {code,data,message}', async () => {
-    const { store } = setup('/devices')
+    const { store } = stubEnv('/devices')
     store.set('token', 't1')
     instance.defaults.adapter = () =>
       Promise.resolve({
@@ -59,7 +42,7 @@ describe('AUTH-04 剥壳与 401（适配器级）', () => {
 
   test('401：提示「未授权，请重新登录」+ 清三键 + 跳 /login', async () => {
     vi.setSystemTime(1_000_000)
-    const { store, location } = setup('/devices')
+    const { store, location } = stubEnv('/devices')
     store.set('token', 't1')
     store.set('userInfo', '{"id":"u1"}')
     store.set('userRole', 'admin')
@@ -75,7 +58,7 @@ describe('AUTH-04 剥壳与 401（适配器级）', () => {
 
   test('401 时已在 /login 页：清键但不整页跳转（F-08 关联行为）', async () => {
     vi.setSystemTime(2_000_000)
-    const { store, location } = setup('/login')
+    const { store, location } = stubEnv('/login')
     store.set('token', 'stale')
     instance.defaults.adapter = () => Promise.reject(httpError(401, {}))
 
@@ -85,7 +68,7 @@ describe('AUTH-04 剥壳与 401（适配器级）', () => {
   })
 
   test('非 401 错误：不清键、不跳转，只 toast 归一文案', async () => {
-    const { store, location } = setup('/devices')
+    const { store, location } = stubEnv('/devices')
     store.set('token', 't1')
     instance.defaults.adapter = () => Promise.reject(httpError(502, { message: '网关超时' }))
 

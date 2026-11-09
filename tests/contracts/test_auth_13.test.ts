@@ -5,6 +5,7 @@
 
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
 import { shouldNotifyUnauthorized } from '../../src/utils/auth'
+import { stubEnv, httpError } from '../helpers/harness'
 
 vi.mock('element-plus', () => ({
   ElMessage: { error: vi.fn(), success: vi.fn() },
@@ -40,17 +41,8 @@ describe('AUTH-13 去重窗口（纯函数）', () => {
 describe('AUTH-13 并发 401（适配器级）', () => {
   test('同一时刻 3 个请求同时 401 → 仅提示一次', async () => {
     vi.setSystemTime(5_000_000)
-    const store = new Map<string, string>()
-    vi.stubGlobal('localStorage', {
-      getItem: (k: string) => store.get(k) ?? null,
-      setItem: (k: string, v: string) => void store.set(k, v),
-      removeItem: (k: string) => void store.delete(k),
-    })
-    vi.stubGlobal('window', { location: { href: 'http://localhost/', pathname: '/devices' } })
-    const err = Object.assign(new Error('401'), {
-      response: { status: 401, data: {} },
-    })
-    instance.defaults.adapter = () => Promise.reject(err)
+    stubEnv('/devices')
+    instance.defaults.adapter = () => Promise.reject(httpError(401, {}))
 
     await Promise.allSettled([
       instance.get('/users/list'),

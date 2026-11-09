@@ -5,6 +5,7 @@
  */
 
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
+import { stubEnv, httpError } from '../helpers/harness'
 
 vi.mock('element-plus', () => ({
   ElMessage: { error: vi.fn(), success: vi.fn() },
@@ -15,12 +16,6 @@ const { instance } = await import('../../src/api')
 beforeEach(() => {
   vi.useFakeTimers()
   ElMessage.error = vi.fn()
-  const store = new Map<string, string>()
-  vi.stubGlobal('localStorage', {
-    getItem: (k: string) => store.get(k) ?? null,
-    setItem: (k: string, v: string) => void store.set(k, v),
-    removeItem: (k: string) => void store.delete(k),
-  })
 })
 
 afterEach(() => {
@@ -31,10 +26,8 @@ afterEach(() => {
 describe('F-08 登录页 401 不整页跳转', () => {
   test('当前在 /login → 不写 window.location.href（原状必写 → 整页 reload）', async () => {
     vi.setSystemTime(30_000_000)
-    const location = { href: 'http://localhost/', pathname: '/login' }
-    vi.stubGlobal('window', { location })
-    const err = Object.assign(new Error('401'), { response: { status: 401, data: {} } })
-    instance.defaults.adapter = () => Promise.reject(err)
+    const { location } = stubEnv('/login')
+    instance.defaults.adapter = () => Promise.reject(httpError(401, {}))
 
     await expect(instance.post('/auth/login', {})).rejects.toBeTruthy()
     expect(location.href).toBe('http://localhost/')

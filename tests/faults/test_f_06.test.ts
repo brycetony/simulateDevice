@@ -5,6 +5,7 @@
  */
 
 import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
+import { stubEnv, httpError } from '../helpers/harness'
 
 vi.mock('element-plus', () => ({
   ElMessage: { error: vi.fn(), success: vi.fn() },
@@ -13,13 +14,7 @@ const { instance } = await import('../../src/api')
 
 beforeEach(() => {
   vi.useFakeTimers()
-  const store = new Map<string, string>()
-  vi.stubGlobal('localStorage', {
-    getItem: (k: string) => store.get(k) ?? null,
-    setItem: (k: string, v: string) => void store.set(k, v),
-    removeItem: (k: string) => void store.delete(k),
-  })
-  vi.stubGlobal('window', { location: { href: 'http://localhost/', pathname: '/devices' } })
+  stubEnv('/devices')
 })
 
 afterEach(() => {
@@ -35,10 +30,8 @@ describe('F-06 错误路径零日志', () => {
       throw new Error('F-06 违例：错误路径打印了响应数据')
     }
     try {
-      const err = Object.assign(new Error('500'), {
-        response: { status: 500, data: { message: '内部错误', token: 'leak-me' } },
-      })
-      instance.defaults.adapter = () => Promise.reject(err)
+      instance.defaults.adapter = () =>
+        Promise.reject(httpError(500, { message: '内部错误', token: 'leak-me' }))
       await expect(instance.get('/users/list')).rejects.toBeTruthy()
     } finally {
       console.log = original
