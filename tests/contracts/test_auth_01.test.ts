@@ -1,7 +1,8 @@
 /**
  * 契约测试：AUTH-01 凭证摘要（md5 32 位小写 hex，明文禁止出网）+ AUTH-08 改密载荷。
  * 断言来源: docs/contracts/auth.md 条目 AUTH-01 / AUTH-08（判据先于实现存在，禁止按实现反推）。
- * 向量说明：期望值为 macOS md5 命令独立生成的 RFC 1321 公开向量，非本实现自产。
+ * 向量说明：期望值经系统 md5 命令独立复算（空串与 'abc' 为 RFC 1321 A.5 套件向量，
+ * 'secret'/'password' 为常见公开向量），非本实现自产。
  */
 
 import { describe, expect, test } from 'vitest'

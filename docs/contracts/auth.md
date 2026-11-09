@@ -26,7 +26,8 @@
 ## AUTH-03 Bearer 附加 [确认]
 
 有 `token` 时所有 `/api` 请求自动附加 `Authorization: Bearer <token>`；
-无 token 或空串**不得附加空头**；已有自定义头不被覆盖。
+无 token 或空串**不得附加空头**；已有自定义头不被覆盖；`Authorization` 头碰撞时
+**以会话 token 为准**（显式覆盖调用方值）。
 判据：`attachAuthHeader` 对空/null token 的输出不含 Authorization 键。
 测试：tests/contracts/test_auth_03.test.ts
 

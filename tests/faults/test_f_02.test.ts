@@ -22,4 +22,9 @@ describe('F-02 default 分支不再抛 TypeError', () => {
     expect(resolveApiErrorMessage(502, { message: [] })).toBe('未知错误')
     expect(resolveApiErrorMessage(502, { message: 42 })).toBe('未知错误')
   })
+
+  test('全非字符串数组（[42] / [""]）join 结果为空 → 落兜底，不弹空文案', () => {
+    expect(resolveApiErrorMessage(502, { message: [42] })).toBe('未知错误')
+    expect(resolveApiErrorMessage(400, { message: [''] })).toBe('请求参数错误')
+  })
 })

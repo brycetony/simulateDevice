@@ -22,8 +22,9 @@ describe('F-12 userInfo 防御性解析', () => {
     expect(parseUserInfo('{"id":"u1","role":"admin"}')).toEqual({ id: 'u1', role: 'admin' })
   })
 
-  test('合法 JSON 但非对象（字符串/数字）→ {}', () => {
+  test('合法 JSON 但非对象（字符串/数字/数组）→ {}', () => {
     expect(parseUserInfo('"just a string"')).toEqual({})
     expect(parseUserInfo('123')).toEqual({})
+    expect(parseUserInfo('[1,2]')).toEqual({})
   })
 })
