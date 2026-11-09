@@ -77,6 +77,7 @@
 | 11-09 | PR9（批 1a 核心）四样审查：0×P0+0×P1+5×P2，可合并；5 条 P2（F-04 指针/空文案兜底/数组 parseUserInfo/Authorization 碰撞语义/向量措辞）随批 1b 修复 | 10m | code-reviewer；md5 向量独立复算核验通过 |
 | 11-09 | 批 1b 执行：拦截器/守卫/会话接线 + D2/D3/D5/D6/D8/D12 修复 + 适配器级测试；两次超尺寸（855/816）经拆分与公共桩去重收敛 788；vitest 100/100 | 55m | agent |
 | 11-09 | PR10（批 1b）四样审查：0×P0+0×P1+4×P2（AUTH-14 路径回填/F-11 状态标注/卡执行行/Login 畸形响应兜底），全修后合并；AUTH-03 端到端 header 捕获测试补入批 2 | 10m | code-reviewer；axios headers 机制已实证 |
+| 11-09 | 批 2 执行：utils/users.ts 纯函数（枚举/superadmin 谓词/校验/状态翻转）+ Users.vue 接线（D10 回滚、D1/D6/D11 Users 侧、AUTH-11 谓词化）+ 测试 6 文件 + AUTH-03 端到端 + decisions 目录落点（PR6 遗留 P2）；D4 按裁决不修（探针挪至 §8 人工判据） | 45m | agent |
 
 ## 7. 新增决策（实现中发现契约没写的，等人确认后回填契约）
 

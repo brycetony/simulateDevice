@@ -60,14 +60,17 @@
 
 - 现状：`handleStatusChange` 无 try/catch，`editUser` 失败 → unhandled rejection，
   switch 停在错误态、列表不刷新（`Users.vue:180-184`；`main.ts` 无 errorHandler）。
-- 修复判据：失败回滚 UI 状态并显式提示。回归测试：批 2 交付。
+- 修复判据：失败回滚 UI 状态并刷新；失败原因由拦截器 toast（F-01 单点）。
+- 回归测试：tests/faults/test_f_10.test.ts（回滚翻转语义与角色禁用谓词）；
+  回滚接线属组件层，人工/GUI 判据覆盖。
 
-## F-11 双弹窗与技术文案（D11）[确认修复·批 1b Layout 侧 / 批 2 Users 侧]
+## F-11 双弹窗与技术文案（D11）[确认修复·批 1b Layout 侧 + 批 2 Users 侧]
 
 - 现状：调用方二次弹窗 + axios 英文技术文案兜底与拦截器弹窗叠加
   （`Users.vue:166,213`、`Layout.vue:181`）。
 - 修复判据：错误提示单点（拦截器），调用方只管 loading/关框。
-  回归测试：Layout 侧随批 1b 接线交付（人工/GUI 判据）；Users 侧批 2 交付。
+- 回归测试：拦截器单点见 tests/faults/test_f_01.test.ts；Layout/Users 接线属组件层，
+  人工/GUI 判据覆盖。
 
 ## F-12 Layout 顶层 JSON.parse 白屏（D12）[确认修复·批 1a]
 
