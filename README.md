@@ -18,7 +18,7 @@
 关键文档：
 
 - `AGENTS.md` —— agent 工作规则（入口决策树、高风险范围、域前缀注册表）
-- `docs/contracts/` —— 契约（验收判据的唯一源头，变更须 owner 复核，CODEOWNERS 强制）
+- `docs/contracts/` —— 契约（验收判据的唯一源头，变更须 owner 复核；`.github/CODEOWNERS` 标注复核责任人——单人仓库不设 GitHub 侧评审强制，防自批死锁）
 - `docs/tasks/` —— 任务卡 + 考古报告；`docs/faults/` —— 历史故障库
 - `.github/workflows/gate.yml` —— 质量门禁：任务卡存在性、测试溯源 ID 真实性、
   契约↔测试双向链接、diff 尺寸、契约测试
