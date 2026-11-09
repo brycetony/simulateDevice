@@ -89,12 +89,14 @@ export function redirectTargetOn401(currentPath: string): '/login' | null {
   return currentPath === '/login' ? null : '/login'
 }
 
-/** [AUTH-13] 并发 401 去重：窗口期（默认 1000ms）内仅首次需要提示/跳转。 */
+/** [AUTH-13] 并发 401 去重：窗口期（默认 1000ms）内仅首次需要提示/跳转。
+ * lastNotifiedAt ≤ 0 视为「从未提示」——显式哨兵处理，不依赖时钟天然大于窗口期。 */
 export function shouldNotifyUnauthorized(
   now: number,
   lastNotifiedAt: number,
   windowMs = 1000,
 ): boolean {
+  if (lastNotifiedAt <= 0) return true
   return now - lastNotifiedAt >= windowMs
 }
 

@@ -26,7 +26,7 @@ import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import type { FormInstance } from 'element-plus'
 import { login } from '../api'
-import md5 from 'crypto-js/md5'
+import { buildLoginPayload, sessionWrites } from '@/utils/auth'
 
 const router = useRouter()
 const loginFormRef = ref<FormInstance>()
@@ -44,23 +44,19 @@ const rules = {
 
 const handleLogin = async () => {
   if (!loginFormRef.value) return
-  const data = {
-    ...loginForm,
-    password: md5(loginForm.password).toString(),
-  }
   await loginFormRef.value.validate(async (valid: boolean) => {
     if (valid) {
       loading.value = true
       try {
-        const res = await login(data)
-        console.log(res)
-        localStorage.setItem('token', res.data.access_token)
-        localStorage.setItem('userInfo', JSON.stringify(res.data.user))
-        localStorage.setItem('userRole', res.data.user.role)
+        const res = await login(buildLoginPayload(loginForm.username, loginForm.password))
+        // AUTH-02：会话三键写入（形状锁定在 utils/auth.ts，含 role 缺失写空串）
+        for (const [key, value] of sessionWrites(res.data)) {
+          localStorage.setItem(key, value)
+        }
         ElMessage.success('登录成功')
         router.push('/')
-      } catch (error: any) {
-        ElMessage.error('登录失败')
+      } catch {
+        // F-01/D1：失败原因已由拦截器统一 toast，此处不再吞掉也不重复弹窗
       } finally {
         loading.value = false
       }

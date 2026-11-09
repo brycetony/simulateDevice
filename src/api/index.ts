@@ -1,19 +1,25 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import type { QueryParams, PageResult, ApiResponse } from '@/types/api'
+import {
+  SESSION_KEYS,
+  UNAUTHORIZED_MESSAGE,
+  attachAuthHeader,
+  redirectTargetOn401,
+  resolveApiErrorMessage,
+  shouldNotifyUnauthorized,
+} from '@/utils/auth'
 
-const instance = axios.create({
+export const instance = axios.create({
   baseURL: '/api',
   timeout: 5000
 })
 
-// 请求拦截器
+// 请求拦截器（AUTH-03）：决策在 utils/auth.ts，此处只读键→附加头。
 instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
+    config.headers = attachAuthHeader({ ...config.headers }, token)
     return config
   },
   (error) => {
@@ -21,37 +27,40 @@ instance.interceptors.request.use(
   }
 )
 
-// 响应拦截器
+// 401 并发去重窗口（AUTH-13）：模块级时间戳，窗口期内只提示/跳转一次。
+let lastUnauthorizedNotifiedAt = 0
+
+// 响应拦截器（AUTH-04/05/13，F-01/02/03/06/08）：
+// 文案决策在 utils/auth.ts resolveApiErrorMessage；此处只施加 toast/清键/跳转副作用。
 instance.interceptors.response.use(
   (response) => {
     return response.data
   },
   (error) => {
     if (error.response) {
-      console.log(error.response);
-      switch (error.response.status) {
-        case 400:
-          ElMessage.error(error.response.data.message || '请求参数错误')
-          break
-        case 401:
-          ElMessage.error('未授权，请重新登录')
-          localStorage.removeItem('token')
-          window.location.href = '/login'
-          break
-        case 403:
-          ElMessage.error(error.response.data.message || '拒绝访问')
-          break
-        case 404:
-          ElMessage.error(error.response.data.message || '请求错误，未找到该资源')
-          break
-        case 500:
-          ElMessage.error(error.response.data.message || '服务器端出错')
-          break
-        default:
-          ElMessage.error(error.response.data.message.join(', ') || '未知错误')
+      const status: number = error.response.status
+      if (status === 401) {
+        // F-03：清三键（token/userInfo/userRole），不再只清 token
+        for (const key of SESSION_KEYS) {
+          localStorage.removeItem(key)
+        }
+        // AUTH-13：窗口期内仅首次提示 + 跳转
+        const now = Date.now()
+        if (shouldNotifyUnauthorized(now, lastUnauthorizedNotifiedAt)) {
+          lastUnauthorizedNotifiedAt = now
+          ElMessage.error(UNAUTHORIZED_MESSAGE)
+          // F-08：已在 /login 页时不整页跳转（防 reload 抹掉错误提示与表单输入）
+          const target = redirectTargetOn401(window.location.pathname)
+          if (target) {
+            window.location.href = target
+          }
+        }
+      } else {
+        // F-01：失败原因必须到达 UI；F-02：任何输入不抛 TypeError
+        ElMessage.error(resolveApiErrorMessage(status, error.response.data))
       }
     } else {
-      ElMessage.error('网络错误，请稍后重试')
+      ElMessage.error(resolveApiErrorMessage(undefined, undefined))
     }
     return Promise.reject(error)
   }

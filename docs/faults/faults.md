@@ -11,7 +11,7 @@
   用户新增/编辑失败的 ElMessage 被注释仅 `console.log`（`Users.vue:236-239`）——
   后端拒绝时用户零反馈，违反 TOOLS-04 显式失败。
 - 修复判据：失败原因必须到达 UI（拦截器归一文案直达，调用方不再吞/不再重复弹）。
-- 回归测试：批 1b / 批 2 交付。
+- 回归测试：tests/faults/test_f_01.test.ts（拦截器层）；调用方侧人工/GUI 判据，批 2 补 Users 侧。
 
 ## F-02 default 分支 join 必崩（D2）[确认修复·批 1a]
 
@@ -25,7 +25,7 @@
 - 现状：401 只清 `token`，残留 `userInfo`/`userRole`（`api/index.ts:36-40`）；
   登出同样残留 `userInfo`（`Layout.vue:153-154`）。
 - 修复判据：401 与登出清键集合 = 三键全集（AUTH-02/07）。
-- 回归测试：批 1b 交付（适配器级）。
+- 回归测试：tests/faults/test_f_03.test.ts
 
 ## F-04 resetForm 残留（D4）[空缺——探针实证后再裁]
 
@@ -36,14 +36,14 @@
 - 现状：改密成功 → `handleLogout()` 内含确认框，点取消则**携旧 token 留在站内**
   （`Layout.vue:177-179,150-152`）。
 - 修复判据：改密成功路径免确认强制登出（`forcedLogoutAction` confirm=false，AUTH-08）。
-- 回归测试：批 1b 交付。
+- 回归测试：tests/contracts/test_auth_02.test.ts（forcedLogoutAction 免确认断言）
 
 ## F-06 凭证泄漏日志（D6）[确认修复·批 1b Login/api 侧 / 批 2 Users 侧]
 
 - 现状：`console.log` 打印含 `access_token` 的完整登录响应（`Login.vue:56`）、
   整个 error.response（`api/index.ts:31`）、用户行数据（`Users.vue:181,195,198,227`）。
 - 修复判据：真实流程入口在 console.log 替换为抛错函数后不抛。
-- 回归测试：批 1b / 批 2 交付。
+- 回归测试：tests/faults/test_f_06.test.ts（api 层）；组件侧人工/GUI 判据，批 2 补 Users 侧。
 
 ## F-07 初始密码黑箱（D7）[空缺——OPEN 待 Q3]
 
@@ -52,7 +52,7 @@
 - 现状：登录失败若后端返 401 → 拦截器 `window.location.href='/login'` 对登录页整页 reload，
   抹掉错误提示与已输入表单（`api/index.ts:36-40` 不检查当前路径）。
 - 修复判据：`redirectTargetOn401('/login')` → null（AUTH-04）。
-- 回归测试：批 1b 交付。
+- 回归测试：tests/faults/test_f_08.test.ts
 
 ## F-09 假登录循环（D9）[空缺——OPEN 待 Q13]
 

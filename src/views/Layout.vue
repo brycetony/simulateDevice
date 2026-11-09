@@ -112,11 +112,17 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import { changePassword } from '@/api'
-import md5 from 'crypto-js/md5'
+import {
+  parseUserInfo,
+  buildChangePasswordPayload,
+  logoutAction,
+  forcedLogoutAction,
+} from '@/utils/auth'
 
 const route = useRoute()
 const router = useRouter()
-const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+// F-12：防御性解析——非法 JSON 不再白屏
+const userInfo = parseUserInfo(localStorage.getItem('userInfo'))
 const userRole = ref(localStorage.getItem('userRole') || '')
 
 const dialogVisible = ref(false)
@@ -145,17 +151,27 @@ const rules = ref({
   ]
 })
 
-const handleLogout = async () => {
-  try {
-    await ElMessageBox.confirm('确认退出登录吗？', '提示', {
-      type: 'warning'
-    })
-    localStorage.removeItem('token')
-    localStorage.removeItem('userRole')
-    router.push('/login')
-  } catch {
-    // 用户取消退出
+// 会话动作施加器（AUTH-07/08）：决策在 utils/auth.ts，此处只清键+导航。
+const applySessionAction = (action: { clearKeys: readonly string[]; redirect: string }) => {
+  for (const key of action.clearKeys) {
+    localStorage.removeItem(key)
   }
+  router.push(action.redirect)
+}
+
+const handleLogout = async () => {
+  const action = logoutAction()
+  if (action.confirm) {
+    try {
+      await ElMessageBox.confirm('确认退出登录吗？', '提示', {
+        type: 'warning'
+      })
+    } catch {
+      // 用户取消手动登出（F-05：仅手动登出可取消；改密后的强制登出免确认）
+      return
+    }
+  }
+  applySessionAction(action)
 }
 
 const handleChangePassword = () => {
@@ -164,21 +180,20 @@ const handleChangePassword = () => {
 
 const submitChangePassword = async () => {
   if (!formRef.value) return
-  
+
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        const data = {
-          userId: userInfo.id,
-          oldPassword: md5(form.value.oldPassword).toString(),
-          password: md5(form.value.password).toString()
-        }
-        await changePassword(data)
-        ElMessage.success('修改密码成功')
+        // AUTH-08：载荷构造在 utils/auth.ts；userId 照现状取 userInfo.id（C19 OPEN）
+        await changePassword(
+          buildChangePasswordPayload(userInfo.id, form.value.oldPassword, form.value.password),
+        )
         dialogVisible.value = false
-        handleLogout()
-      } catch (error: any) {
-        ElMessage.error(error.message || '修改密码失败')
+        ElMessage.success('密码已修改，请重新登录')
+        // F-05：改密成功必须终结会话，免确认直接登出
+        applySessionAction(forcedLogoutAction())
+      } catch {
+        // F-01/F-11：失败原因已由拦截器统一 toast，不再二次弹窗
       }
     }
   })
