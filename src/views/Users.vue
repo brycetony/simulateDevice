@@ -13,19 +13,19 @@
         <el-table-column prop="nickName" label="姓名" />
         <el-table-column prop="role" label="角色">
           <template #default="{ row }">
-            <el-tag>{{ roles[row.role as keyof Roles] }}</el-tag>
+            <el-tag>{{ roles[row.role as (typeof USER_ROLES)[number]] }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="email" label="邮箱" />
         <el-table-column prop="status" label="状态" >
           <template #default="{ row }">
-            <el-switch v-model="row.status" :disabled="row.role === 'superadmin'" active-value="1" inactive-value="0" @change="handleStatusChange(row, $event)"/>
+            <el-switch v-model="row.status" :disabled="!canToggleStatus(row.role)" active-value="1" inactive-value="0" @change="handleStatusChange(row, $event)"/>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="200">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
-            <el-button type="danger" link v-if="row.role !== 'superadmin'" @click="handleDelete(row)">删除</el-button>
+            <el-button type="danger" link v-if="canDeleteUser(row.role)" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -53,7 +53,7 @@
           label-width="80px"
         >
           <el-form-item label="用户名" prop="username">
-            <el-input v-model="userForm.username"  :disabled="!!userForm._id" placeholder="请输入用户名" />
+            <el-input v-model="userForm.username"  :disabled="!usernameEditable(!!userForm._id)" placeholder="请输入用户名" />
           </el-form-item>
           <el-form-item label="姓名" prop="nickName">
             <el-input v-model="userForm.nickName" placeholder="请输入姓名" />
@@ -63,7 +63,7 @@
           </el-form-item>
           <el-form-item label="角色" prop="role">
             <el-select v-model="userForm.role" placeholder="请选择角色">
-              <el-option v-for="role in Object.keys(roles).filter(role => role !== 'superadmin')" :label="roles[role as keyof Roles]" :value="role" />
+              <el-option v-for="role in assignableRoles()" :label="roles[role]" :value="role" />
             </el-select>
           </el-form-item>
           <el-form-item label="状态" prop="status">
@@ -93,6 +93,16 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import { getUserList, addUser, editUser, deleteUser } from '@/api'
 import Pagination from '@/components/Pagination.vue'
+import {
+  ROLE_LABELS,
+  USER_ROLES,
+  canToggleStatus,
+  canDeleteUser,
+  assignableRoles,
+  usernameEditable,
+  nextStatus,
+  validateUserForm,
+} from '@/utils/users'
 
 interface UserForm {
   _id?: string
@@ -104,17 +114,8 @@ interface UserForm {
   status: string
 }
 
-type Roles = {
-  superadmin: string
-  admin: string
-  user: string
-}
-
-const roles: Roles = {
-  superadmin: '超级管理员',
-  admin: '管理员',
-  user: '用户'
-}
+// AUTH-10：标签映射的唯一来源在 utils/users.ts（枚举与标签锁定）
+const roles = ROLE_LABELS
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -162,8 +163,8 @@ const fetchUsers = async () => {
     })
     userList.value = res.data.items
     total.value = res.data.total
-  } catch (error: any) {
-    ElMessage.error(error.message || '获取用户列表失败')
+  } catch {
+    // F-11：失败原因已由拦截器统一 toast，不再二次弹窗
   } finally {
     loading.value = false
   }
@@ -176,11 +177,15 @@ const handlePagination = ({ page, limit }: { page: number; limit: number }) => {
   fetchUsers()
 }
 
-// 修改用户状态
+// 修改用户状态（F-10：失败回滚开关状态——v-model 先翻转，失败时翻回并刷新）
 const handleStatusChange = async (row: UserForm, status: string) => {
-  console.log(row)
-  await editUser({ ...row, status: status })
-  fetchUsers()
+  try {
+    await editUser({ ...row, status })
+    fetchUsers()
+  } catch {
+    row.status = nextStatus(status)
+    fetchUsers()
+  }
 }
 
 // 新增用户
@@ -192,10 +197,7 @@ const handleAdd = () => {
 // 编辑用户
 const handleEdit = (row: UserForm) => {
   dialogTitle.value = '编辑用户'
-  console.log(row)
- 
   Object.assign(userForm, row)
-  console.log(userForm)
   dialogVisible.value = true
 }
 
@@ -208,9 +210,10 @@ const handleDelete = async (row: UserForm) => {
     await deleteUser(row._id as string)
     ElMessage.success('删除成功')
     fetchUsers()
-  } catch (error: any) {
+  } catch (error) {
+    // F-11：真实失败已由拦截器 toast；cancel 是用户关闭确认框，静默
     if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
+      // no-op
     }
   }
 }
@@ -218,13 +221,19 @@ const handleDelete = async (row: UserForm) => {
 // 提交表单
 const handleSubmit = async () => {
   if (!userFormRef.value) return
-  
+
   await userFormRef.value.validate(async (valid) => {
     if (valid) {
+      // AUTH-12 契约校验（纯函数为生效路径，与 el-form 规则双轨对齐——
+      // 分歧即缺陷，见 PR11 审查 P1 修复）
+      const errors = validateUserForm(userForm)
+      if (errors.length > 0) {
+        ElMessage.error(errors[0].message)
+        return
+      }
       submitting.value = true
       try {
         if (userForm._id) {
-          console.log(userForm)
           await editUser(userForm)
           ElMessage.success('编辑成功')
         } else {
@@ -233,10 +242,8 @@ const handleSubmit = async () => {
         }
         dialogVisible.value = false
         fetchUsers()
-      } catch (error: any) {
-        console.log(error)
-        // console.log(ElMessage.error)
-        // ElMessage.error(error.message || '操作失败')
+      } catch {
+        // F-01/F-11：失败原因已由拦截器统一 toast，此处不再吞掉也不再重复弹窗
       } finally {
         submitting.value = false
       }

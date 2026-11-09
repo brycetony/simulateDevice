@@ -77,24 +77,24 @@
 四接口：`GET /users/list`（page/pageSize/search）、`POST /users/add`、`PUT /users/edit`、
 `DELETE /users/delete/:id`。**add 与 edit 的请求体不含密码字段**；初始密码策略完全归属后端
 （[OPEN] Q3/D7），前端零假设。
-测试：批 2 交付。
+测试：tests/contracts/test_auth_09.test.ts
 
 ## AUTH-10 role/status 枚举 [确认]
 
 `role ∈ {superadmin, admin, user}`；`status` 为字符串 `'1'/'0'`（禁止数字形态混用）。
-测试：批 2 交付。
+测试：tests/contracts/test_auth_10.test.ts
 
 ## AUTH-11 superadmin UI 保护 [确认]
 
 superadmin 账户不可经 UI：禁用状态开关、删除、以 superadmin 角色新建、编辑时改 username。
 四处模板保护是该策略的当前实现；属**合法 UI 便利**，非安全边界（见顶部声明）。
-测试：批 2 交付。
+测试：tests/contracts/test_auth_11.test.ts（谓词）/ AUTH-03 端到端见 test_auth_03.test.ts
 
 ## AUTH-12 表单校验 [确认]
 
 用户表单：username/nickName 必填；email 非必填但须过格式校验；role/status 无前端 required。
 改密表单仅 required + 两次一致（强度校验挂 [OPEN] D13/Q1，与后端策略捆绑裁决）。
-测试：批 2 交付。
+测试：tests/contracts/test_auth_12.test.ts
 
 ## AUTH-13 401 并发去重 [确认]（目标行为，随批 1b 生效）
 
