@@ -24,11 +24,15 @@ describe('AUTH-12 表单校验', () => {
     expect(validateUserForm({ username: 'bob', nickName: 'B', email: '' })).toEqual([])
   })
 
-  test('email 非空须过格式校验：非法报错 / 合法通过', () => {
+  test('email 非空须过格式校验：非法报错 / 合法通过（与 el-form async-validator 对齐）', () => {
     expect(validateUserForm({ username: 'bob', nickName: 'B', email: 'abc' })).toEqual([
       { field: 'email', message: '请输入正确的邮箱地址' },
     ])
-    expect(validateUserForm({ username: 'bob', nickName: 'B', email: 'a@b.c' })).toEqual([])
+    // TLD ≥2 字母：'a@b.c' 拒绝（与线上 el-form 行为一致），'a@b.com' 通过
+    expect(validateUserForm({ username: 'bob', nickName: 'B', email: 'a@b.c' })).toEqual([
+      { field: 'email', message: '请输入正确的邮箱地址' },
+    ])
+    expect(validateUserForm({ username: 'bob', nickName: 'B', email: 'a@b.com' })).toEqual([])
   })
 
   test('role/status 无 required：空值不产生校验错误', () => {

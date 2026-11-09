@@ -81,7 +81,12 @@
 
 ## 7. 新增决策（实现中发现契约没写的，等人确认后回填契约）
 
-- 暂无（裁决①结果已回填 §3 与 RESEARCH 裁决记录；执行中新决策随时登记于此）
+- **email 格式正则选择**（PR11 审查 P1 引出的隐性决策，2026-11-09 agent 登记、随 PR 生效）：
+  纯函数校验的正则与 element-plus（async-validator 4.x）`type:'email'` 规则对齐——
+  TLD ≥2 字母（`a@b.c` 拒绝 / `a@b.com` 通过）；`validateUserForm` 已接入 Users.vue 提交路径
+  （el-form 规则与纯函数双轨，分歧即缺陷）。AUTH-12 契约原文只说"须过格式校验"，
+  具体正则以本决策为准，回填义务：下次修订 auth.md 时并入 AUTH-12。
+- 暂无其他（裁决①结果已回填 §3 与 RESEARCH 裁决记录）
 
 ## 8. 整体验收与运行反馈（合并后回填；不回填不算 Done——AGENTS.md §7）
 

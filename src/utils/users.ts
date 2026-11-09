@@ -40,6 +40,11 @@ export function assignableRoles(): UserRole[] {
   return USER_ROLES.filter((role) => role !== 'superadmin')
 }
 
+/** [AUTH-11] 编辑态（已有 _id）禁改 username。 */
+export function usernameEditable(hasId: boolean): boolean {
+  return !hasId
+}
+
 // ---------- AUTH-12：用户表单校验（契约判据的纯函数形态） ----------
 // 注意：空串判定不做 trim——「空格用户名」行为未裁决（OPEN），锁现状 ''。
 
@@ -54,7 +59,9 @@ export interface FormFieldError {
   message: string
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// email 正则与 element-plus（async-validator 4.x）的 type:'email' 规则对齐：
+// TLD 须 ≥2 个字母（'a@b.c' 拒绝 / 'a@b.com' 通过）——隐性决策已登记 T-004 §7。
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 /** [AUTH-12] username/nickName 必填；email 非必填但非空时须过格式校验；role/status 无 required。 */
 export function validateUserForm(form: UserFormInput): FormFieldError[] {

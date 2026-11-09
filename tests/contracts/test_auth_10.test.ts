@@ -24,7 +24,7 @@ describe('AUTH-10 枚举', () => {
     expect(typeof STATUS_ENABLED).toBe('string')
   })
 
-  test('角色标签映射（标签字面量为契约形态）', () => {
+  test('角色标签映射（锁现状：Users.vue 原映射；契约 AUTH-10 未含标签字面量）', () => {
     expect(ROLE_LABELS).toEqual({
       superadmin: '超级管理员',
       admin: '管理员',

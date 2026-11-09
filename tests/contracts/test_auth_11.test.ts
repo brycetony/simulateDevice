@@ -4,7 +4,12 @@
  */
 
 import { describe, expect, test } from 'vitest'
-import { canToggleStatus, canDeleteUser, assignableRoles } from '../../src/utils/users'
+import {
+  canToggleStatus,
+  canDeleteUser,
+  assignableRoles,
+  usernameEditable,
+} from '../../src/utils/users'
 
 describe('AUTH-11 superadmin 保护谓词', () => {
   test('状态开关：superadmin 禁用，其余角色可切换', () => {
@@ -21,5 +26,10 @@ describe('AUTH-11 superadmin 保护谓词', () => {
 
   test('角色下拉可选项 = admin 与 user（禁止经 UI 以 superadmin 新建）', () => {
     expect(assignableRoles()).toEqual(['admin', 'user'])
+  })
+
+  test('编辑态禁改 username（AUTH-11 第四处保护）', () => {
+    expect(usernameEditable(true)).toBe(false)
+    expect(usernameEditable(false)).toBe(true)
   })
 })

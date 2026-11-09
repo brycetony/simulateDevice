@@ -53,7 +53,7 @@
           label-width="80px"
         >
           <el-form-item label="用户名" prop="username">
-            <el-input v-model="userForm.username"  :disabled="!!userForm._id" placeholder="请输入用户名" />
+            <el-input v-model="userForm.username"  :disabled="!usernameEditable(!!userForm._id)" placeholder="请输入用户名" />
           </el-form-item>
           <el-form-item label="姓名" prop="nickName">
             <el-input v-model="userForm.nickName" placeholder="请输入姓名" />
@@ -99,7 +99,9 @@ import {
   canToggleStatus,
   canDeleteUser,
   assignableRoles,
+  usernameEditable,
   nextStatus,
+  validateUserForm,
 } from '@/utils/users'
 
 interface UserForm {
@@ -219,9 +221,16 @@ const handleDelete = async (row: UserForm) => {
 // 提交表单
 const handleSubmit = async () => {
   if (!userFormRef.value) return
-  
+
   await userFormRef.value.validate(async (valid) => {
     if (valid) {
+      // AUTH-12 契约校验（纯函数为生效路径，与 el-form 规则双轨对齐——
+      // 分歧即缺陷，见 PR11 审查 P1 修复）
+      const errors = validateUserForm(userForm)
+      if (errors.length > 0) {
+        ElMessage.error(errors[0].message)
+        return
+      }
       submitting.value = true
       try {
         if (userForm._id) {
