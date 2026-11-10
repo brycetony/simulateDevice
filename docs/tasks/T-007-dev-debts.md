@@ -20,7 +20,8 @@
 - **D18（=A9/A12）** Monitor sendData 无 try/catch、发送按钮无防重——连点 N 次即对设备发 N 次
   （`Monitor.vue:175-183`）；失败 unhandled rejection。红队定级 P1（设备为真实硬件则升）
 - **A11** Monitor getDeviceInfo 无兜底（onMounted 失败即空白页）
-- **A13** Devices 启停不 await 即刷新 / 无错误处理——假态（F-10 同型；`Devices.vue:198-209`）
+- **A13** Devices 启停无 try/catch——失败 unhandled rejection、无提示且列表不刷新（假态；
+  F-10 同型；`Devices.vue:198-209`。await 本身存在，修复方向是补 catch 非「补 await」）
 - **A17** Monitor socket 硬编码 localhost:3000（`Monitor.vue:196` 附近）
 - **A18** Monitor console.log 打印设备完整响应（F-06 同型）
 - **前置风险（开工第一 PR）**：@vueuse/core 幻影依赖——`Monitor.vue:73` import 而

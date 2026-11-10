@@ -15,7 +15,10 @@ TOOLS/AUTH 域同等的「契约可执行」保障；本任务同时是 `domain-
 
 - `docs/contracts/commands.md`：CMD-01..10 + 头部边界声明 + OPEN 挂账（v1.0，
   2026-11-10 裁决①）——**批 1 PR 交付**
-- `docs/faults/faults.md`：F-13（D17，CMD 侧双弹窗）——**批 2 PR 交付**
+- `docs/faults/faults.md`：F-13（D17，CMD 侧双弹窗）——**批 2 PR 交付**；随批 2 同步修订
+  faults.md 头部编号规则（PR16 审查 P1）：「D↔F 一一对应」仅适用 AUTH 域 D1-D12 先例；
+  自 D13 起 D 全局续排、F 按确认修复登记顺序分配（D13 随 D17 消解、D14/D15/D16 随契约
+  版本 B 修复判据入契约测试，均不占 F 号——空缺原因随批 2 注明）
 - 跨域自动生效（commands.md 头部声明，不重复抄写）：AUTH-03/04/05/13
   （Bearer 附加 / 2xx 剥壳 / 错误文案归一单点 / 401 并发去重）
 - AGENTS.md §3 高风险类变更：现行条目 3「DeviceCommands.vue 的命令下发路径」经裁决①认定失实
@@ -29,7 +32,8 @@ TOOLS/AUTH 域同等的「契约可执行」保障；本任务同时是 `domain-
 ⑥ D22 独立 PR。Q16（add 载荷显式剥离 `_id:undefined`）按 CMD-07 推荐列随批 1 生效；Q2 随版本 B 落地。
 
 **政策**：政策 A 沿用（gate 绿 + 审查无 P0/P1 即自动合并，T-004 起生效）——裁决①时按
-「默认沿用」声明，owner 未提出异议，可随时改判。
+「默认沿用」声明，owner 未提出异议，可随时改判。口径出处：裁决①呈现文本
+（本卡与 RESEARCH 附录 B 为该口径的首个仓内落库记录，PR16 审查 P2-4）。
 
 **OPEN（答前禁止实现，AGENTS.md §1；详表见 commands.md 末表与 RESEARCH §4）**：
 
@@ -67,6 +71,8 @@ TOOLS/AUTH 域同等的「契约可执行」保障；本任务同时是 `domain-
   （默认不做，点名才做）、gate.yml 修改（A15 盲区仅记备注）
 - 顺序硬约束：裁决① → 回填 commands.md → 同批挂 CMD-xx 测试（gate.yml 溯源 + 反链双向约束
   契约与测试同 PR 一致性，A15 盲区所致）
+- 顺序约束 2：D22 规则 PR 先于批 2 合并（执行序：批 1 → D22 → 批 2）；若倒置，批 2 触及
+  DeviceCommands.vue 须按 AGENTS.md 现行 §3.3 留人工复核，不走政策 A 自动合并（PR16 审查 P2）
 
 ---
 
@@ -85,7 +91,7 @@ TOOLS/AUTH 域同等的「契约可执行」保障；本任务同时是 `domain-
 
 ### 可自动判据（命令 / 脚本；逐步固化为 GUI 自动化）
 
-- [ ] `npx vitest run` → 162/162 全绿（28→37 文件；基线 121 之上只增不减）
+- [ ] `npx vitest run` → 162/162 全绿（27→37 文件；基线 121 之上只增不减）
 - [ ] gate 五项在本任务各 PR 全部通过
 - [ ] GUI 自动化固化（web-gui-tester 跑下方人工判据）——阶段任务，不阻塞 Done
 
