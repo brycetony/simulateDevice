@@ -19,7 +19,7 @@ DELETE `/api/devices/command/{id}`；search 空串照发。
 GET 设备作用域与 CUD 集合作用域的不对称按现状锁定（定性挂后端必答 B1，不改前端）。
 判据：适配器级 5 用例，关系不变量 = deviceId 不进 query、add 载荷无 `_id` 键
 （Q16 已裁显式剥离，见 CMD-07）。
-测试：批 2 交付（适配器级，随接线改造）
+测试：tests/contracts/test_cmd_01.test.ts
 
 ## CMD-02 命令实体与种子 [确认]
 
@@ -101,7 +101,7 @@ RESEARCH §0.3）。**防回归注记**：'close' 仅在启用 distinguishCancel
 （现状锁定；是否收紧随 B1/Q10 答复另裁，本批不动）；唯一入口为设备列表行操作跳转
 （组件接线，批 2 + GUI 判据）。
 判据：路由静态 3 用例（路由存在 / 无 roles / name）。
-测试：批 2 交付（路由静态，随接线改造）
+测试：tests/contracts/test_cmd_10.test.ts
 
 ---
 

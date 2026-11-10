@@ -47,18 +47,19 @@ TOOLS/AUTH 域同等的「契约可执行」保障；本任务同时是 `domain-
 
 ## 4. 验收判据（照抄契约判据 + 本任务补充）【2026-11-10 裁决①确认】
 
-- [ ] gate 全绿：溯源（测试头声明的 CMD-xx 已存在于 commands.md）/ 反链（commands.md 引用的
+- [x] gate 全绿：溯源（测试头声明的 CMD-xx 已存在于 commands.md）/ 反链（commands.md 引用的
       测试文件真实存在；未交付批以批注代路径）/ diff≤800 / `npx vitest run tests/contracts tests/faults` 全绿
-- [ ] 基线不破：旧 121 例零回归；新增约 41 例（批 1 交付 test_cmd_02..09 共 33 例，
-      批 2 交付 test_cmd_01/10 共 8 例；合计 121→162）
-- [ ] F-13 判据：DeviceCommands.vue 三处调用方 ElMessage.error（:286,330,393）移除，
-      错误提示单点归拦截器（GUI 人工判据：制造 API 失败仅一弹）
-- [ ] GUI 人工清单约 7 条固化 `docs/acceptance/gui-checklist-cmd.md`（确认框取消静默 /
-      enter/clear 搜索重置第一页 / reset 探针 deviceId 保留 / 入口跳转 / 编辑分流 / 删除刷新 /
-      X-ESC 取消静默——末条留观察 distinguishCancelAndClose 恒 false）
-- [ ] 组件接线仅调纯函数，逻辑零内联残留（占位符解析 / 参数联动 / 表单校验 / 提交分流 /
-      枚举常量全部走 src/utils/commands.ts；边界同 utils/users.ts 头注）
-- [ ] §8 整体验收回填（不回填不算 Done——AGENTS.md §7）
+      ✅ PR16/17/18/19（批 2）全过
+- [x] 基线不破：旧 121 例零回归；新增约 41 例（批 1 交付 test_cmd_02..09 共 33 例，
+      批 2 交付 test_cmd_01/10 共 8 例；合计 121→162）✅ 162/162（37 文件）
+- [x] F-13 判据：DeviceCommands.vue 三处调用方 ElMessage.error（:286,330,393）移除，
+      错误提示单点归拦截器（GUI 人工判据：制造 API 失败仅一弹）✅ 代码侧随批 2；GUI 判据待 owner
+- [x] GUI 人工清单固化 `docs/acceptance/gui-checklist-cmd.md`（8 条：确认框取消静默 / X-ESC 静默 /
+      API 失败单弹 / 占位符联动一符一行 / 表单校验双轨 / 搜索重置第一页 / reset 探针 / 编辑新增分流+入口）
+      ✅ 随批 2 落库，待 owner 执行
+- [x] 组件接线仅调纯函数，逻辑零内联残留（占位符解析 / 参数联动 / 表单校验 / 提交分流 /
+      枚举常量全部走 src/utils/commands.ts；边界同 utils/users.ts 头注）✅ 批 2
+- [ ] §8 整体验收回填（不回填不算 Done——AGENTS.md §7）——待 owner GUI 判据执行后
 
 ## 5. 范围边界【2026-11-10 裁决①确认】
 
@@ -82,6 +83,11 @@ TOOLS/AUTH 域同等的「契约可执行」保障；本任务同时是 `domain-
 |------|------|------|------|
 | 11-10 | 需求来源：CMD 域冷启动（domain-coldstart run dwfrun-36fdf520，T-005 演练产出票拟包） | 1h16m（无人值守） | 考古 19 候选 + 三视角 32 分歧 + OPEN 21 |
 | 11-10 | 裁决①：owner 批复「全推荐」——契约 CMD-01..10 / 修 D14·D15·D16·D17（D13 随消解）/ 编号 D13+ / F-13 新开 / 两批切法 / 旁域归 T-007 / D22 独立 PR；政策 A 沿用 | <5m | owner；记录见 RESEARCH-cmd 附录 B |
+| 11-10 | PR16（建卡：RESEARCH 归档 + 卡 + T-007）审查 1×P1+5×P2 全修后政策 A 合并 | 12m | code-reviewer 第 2 轮起 0×P0 |
+| 11-10 | 批 1 执行：commands.md + utils/commands.ts + test_cmd_02..09（33 例）；本地 154/154 | 35m | agent |
+| 11-10 | PR17（批 1）审查：0×P0+0×P1+2×P2（CMD-06 空值定义 / F-13 前向引用限定词）全修后政策 A 合并；682 行 | 10m | code-reviewer |
+| 11-10 | PR18（D22 规则修正）审查：0×P0+1×P1（流程：规则 PR 须 owner 人批，不走政策 A）+1×P2（能力锚定，已修）；**待 owner 人批合并** | 10m | code-reviewer；批 2 合并的前置 |
+| 11-10 | 批 2 执行：DeviceCommands.vue 接线（枚举常量/syncParams/双轨校验/buildCommandPayload/isUserCancelled/consumeListResponse/reset，三处 ElMessage.error 移除=F-13）+ test_cmd_01/10（8 例）+ F-13 登记 + faults 编号规则修订 + GUI 清单 8 条 | 30m | agent |
 
 ## 7. 新增决策（实现中发现契约没写的，等人确认后回填契约）
 
