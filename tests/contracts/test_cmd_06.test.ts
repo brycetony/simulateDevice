@@ -23,18 +23,20 @@ describe('CMD-06 参数行联动', () => {
     expect(syncParams('[$a|1]', [])).toEqual([SEED_A])
   })
 
-  test('幂等：同 label 已有带输入的行 → 保留原行不重复追加，重复调用结果稳定', () => {
+  test('幂等：同 label 已有带输入的行 → 保留原行不重复追加，重复调用结果稳定；reqStream 同 label 两次仅一行', () => {
     const existing = { ...SEED_A, paramName: 'N', paramKey: 'k', paramLength: 2, paramValue: 'v', isUnique: true }
     const once = syncParams('[$a|1]', [existing])
     expect(once).toEqual([existing])
     expect(syncParams('[$a|1]', once)).toEqual([existing])
+    expect(syncParams('[$a|1] mid [$a|1]', [])).toEqual([SEED_A])
   })
 
-  test('孤儿行：label 消失且无输入 → 删；有输入 → 留；手工行（label 空）→ 不删（D15 判据）', () => {
+  test('孤儿行：label 消失且无输入 → 删；有文本输入 → 留；仅调种子可变字段 → 删；手工行（label 空）→ 不删（D15 判据）', () => {
     const orphanEmpty = { ...SEED_A, paramLabel: '[$b|2]' }
     const orphanFilled = { ...SEED_A, paramLabel: '[$c|3]', paramName: 'N' }
+    const orphanTyped = { ...SEED_A, paramLabel: '[$d|4]', paramType: 'number', paramLength: 5, isUnique: true }
     const manual = { ...SEED_A, paramLabel: '', paramName: 'M' }
-    const next = syncParams('[$a|1]', [orphanEmpty, orphanFilled, manual])
+    const next = syncParams('[$a|1]', [orphanEmpty, orphanFilled, orphanTyped, manual])
     expect(next.map((p) => p.paramLabel)).toEqual(['[$c|3]', '', '[$a|1]'])
   })
 

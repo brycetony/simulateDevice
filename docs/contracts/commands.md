@@ -60,9 +60,11 @@ reqStream 中 `[$A|B]` 片段**每处独立**解析为一个参数行依据（�
 ## CMD-06 参数行联动 [确认]（版本 B，裁决①；D15/D16 随本条生效）
 
 reqStream 变化 → syncParams 全量同步：新占位符追加种子行（buildPlaceholderParam）、
-同 label 幂等去重（留首行）；paramLabel 已不在 reqStream 的行——仍为空值（无任何用户输入）
-的孤儿行自动删除（D15：修复只增不删导致的脏数据堆积）；已有用户输入的行不自动删；
-手工行（paramLabel 为空串）不自动删。
+同 label 幂等去重（留首行，reqStream 内同 label 出现两次也只占一行）；paramLabel 已不在
+reqStream 的行——仍为空值的孤儿行自动删除（D15：修复只增不删导致的脏数据堆积）。
+**空值定义**：paramName/paramKey/paramValue 三个文本字段全空即空值（仅调整过
+paramType/paramLength/isUnique 的行仍视为空值孤儿行照删——种子可变字段不构成保留理由）；
+任一文本字段非空 = 已有用户输入，不自动删；手工行（paramLabel 为空串）不自动删。
 判据：syncParams 四类用例（追加/幂等/孤儿行/同名相邻）。
 测试：tests/contracts/test_cmd_06.test.ts
 
@@ -77,7 +79,7 @@ edit 载荷整包回传含 `_id`（mass-assignment 白名单为前瞻可选项 D
 ## CMD-08 删除确认与取消分流 [确认]
 
 ElMessageBox 确认后发 DELETE；用户取消（按钮或 X/ESC）静默；API 失败单点 toast 归拦截器
-（AUTH-05 + F-13，调用方不再二次弹窗）。element-plus 2.9.2 默认
+（AUTH-05 + F-13【批 2 登记】，调用方不再二次弹窗）。element-plus 2.9.2 默认
 distinguishCancelAndClose=false：取消按钮与 X/ESC 均 reject 'cancel'（源码实证，
 RESEARCH §0.3）。**防回归注记**：'close' 仅在启用 distinguishCancelAndClose 时另现，
 届时须重裁本条（当前按非取消严格处理）。
