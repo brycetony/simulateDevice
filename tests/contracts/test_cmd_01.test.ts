@@ -60,7 +60,8 @@ describe('CMD-01 命令四接口形状', () => {
   test('addCommand → POST /devices/command，载荷经 buildCommandPayload：deviceId 在 body、无 _id 键', async () => {
     const c: Captured = {}
     api.instance.defaults.adapter = captureAdapter(c)
-    const form = { ...buildEmptyCommandForm('d1'), commandName: 'read' }
+    // _id 用空串构造（编辑残留的 falsy 态）：剥离逻辑必须在载荷层真实起效，而非依赖键缺席
+    const form = { ...buildEmptyCommandForm('d1'), _id: '', commandName: 'read' }
     await api.addCommand(buildCommandPayload(form).payload)
     expect(c.method).toBe('post')
     expect(c.url).toBe('/devices/command')

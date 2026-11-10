@@ -54,8 +54,9 @@ TOOLS/AUTH 域同等的「契约可执行」保障；本任务同时是 `domain-
       批 2 交付 test_cmd_01/10 共 8 例；合计 121→162）✅ 162/162（37 文件）
 - [x] F-13 判据：DeviceCommands.vue 三处调用方 ElMessage.error（:286,330,393）移除，
       错误提示单点归拦截器（GUI 人工判据：制造 API 失败仅一弹）✅ 代码侧随批 2；GUI 判据待 owner
-- [x] GUI 人工清单固化 `docs/acceptance/gui-checklist-cmd.md`（8 条：确认框取消静默 / X-ESC 静默 /
-      API 失败单弹 / 占位符联动一符一行 / 表单校验双轨 / 搜索重置第一页 / reset 探针 / 编辑新增分流+入口）
+- [x] GUI 人工清单固化 `docs/acceptance/gui-checklist-cmd.md`（8 条：删除确认框取消静默+确认删除刷新 /
+      X-ESC 静默 / API 失败单弹 / 占位符联动一符一行 / 表单校验双轨 / 搜索重置第一页 / reset 探针 /
+      编辑新增分流+入口——PR19 审查 P1 后补回删除成功刷新路径）
       ✅ 随批 2 落库，待 owner 执行
 - [x] 组件接线仅调纯函数，逻辑零内联残留（占位符解析 / 参数联动 / 表单校验 / 提交分流 /
       枚举常量全部走 src/utils/commands.ts；边界同 utils/users.ts 头注）✅ 批 2
@@ -91,7 +92,12 @@ TOOLS/AUTH 域同等的「契约可执行」保障；本任务同时是 `domain-
 
 ## 7. 新增决策（实现中发现契约没写的，等人确认后回填契约）
 
-- （待实现中登记）
+- **2xx 无 data 体的静默边界**（PR19 审查 P2-3，2026-11-10 agent 登记）：列表加载 catch {}
+  会吞掉「HTTP 2xx 但 body 无 data」的 TypeError（代理返 HTML / B2 场景），用户零提示；
+  与 Users.vue:166 既有模式同型。**不单独修**（只改一处即造成两域不对称），随 B2/Q9 后端
+  答复与 AUTH C15/Q13 同判同修，届时在拦截器或 consume 层统一兜底。等 owner 确认方向。
+- 编辑残留的额外后端字段（createdAt/__v 等）随整包回传进入 add 载荷——既有行为（reset 只重置
+  九字段），与 D25 白名单相关，随 B4 答复一并裁。
 
 ## 8. 整体验收与运行反馈（合并后回填，**不回填不算 Done**——AGENTS.md §7）
 

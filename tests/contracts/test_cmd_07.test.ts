@@ -16,7 +16,7 @@ describe('CMD-07 提交分流', () => {
     expect(payload.deviceId).toBe('dev-1')
   })
 
-  test('add：_id 为 undefined → mode 为 add，载荷不含 _id 键（显式剥离，非 undefined 值）', () => {
+  test('add：_id 键缺席（初始态）→ mode 为 add，载荷不含 _id 键（显式剥离）', () => {
     const { mode, payload } = buildCommandPayload(buildEmptyCommandForm('dev-1'))
     expect(mode).toBe('add')
     expect('_id' in payload).toBe(false)

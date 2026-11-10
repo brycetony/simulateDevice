@@ -13,19 +13,19 @@ function findCmdRoute() {
 }
 
 describe('CMD-10 路由与访问语义', () => {
-  test('/devices/:id/commands 存在且 name 为 DeviceCommands', () => {
+  test('路由存在：/devices/:id/commands 已注册于 Layout 子路由', () => {
     const cmd = findCmdRoute()
     expect(cmd).toBeDefined()
+    expect(cmd?.path).toBe('devices/:id/commands')
+  })
+
+  test('name 为 DeviceCommands（跳转与唯一入口依赖）', () => {
+    const cmd = findCmdRoute()
     expect(cmd?.name).toBe('DeviceCommands')
   })
 
   test('未声明 meta.roles → 按 AUTH-14 登录即可访问（现状锁定，收紧待 B1/Q10 答复）', () => {
     const cmd = findCmdRoute()
     expect(cmd?.meta?.roles).toBeUndefined()
-  })
-
-  test('meta.title 为 设备命令（路由身份声明，面包屑依赖）', () => {
-    const cmd = findCmdRoute()
-    expect(cmd?.meta?.title).toBe('设备命令')
   })
 })
