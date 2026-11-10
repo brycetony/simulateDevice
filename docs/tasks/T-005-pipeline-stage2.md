@@ -25,7 +25,7 @@
 - [ ] workflow 规格入库（`docs/workflows/pipeline-research.md`：各阶段输入/输出/格式定义，
       从 T-004 实战反推，含耗时基准）
 - [ ] workflow 编排实现并保存（一次调用产出：RESEARCH 草稿 + 三视角分歧清单 + 裁决①票拟包）
-- [ ] 演练一次（小域侦察级）留痕
+- [ ] 演练一次（小域侦察级）留痕——落点：本卡 §6 执行记录 + 演练产出的 RESEARCH 草稿归档 `docs/tasks/`
 - [ ] GUI 验收清单固化（T-004 §8 判据 1–6 的可重复执行版，`docs/acceptance/`）
 - [ ] gate 全绿；vitest 121 基线不破；§8 回填
 
