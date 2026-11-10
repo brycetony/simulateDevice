@@ -63,7 +63,9 @@
   1. `src/api/index.ts` 的拦截器与凭证处理（token 读写、401 跳转逻辑，见 `src/api/index.ts:11-40`）；
   2. `Login.vue` / `Users.vue`（认证与账户）；
   3. `Monitor.vue` 的设备数据发送路径与 `Devices.vue` 的启停操作（可能触达真实设备，
-     见 `Monitor.vue:175-183`、`Devices.vue:198-209`、`src/api/index.ts:139-141`）；
+     见 `Monitor.vue:175-183`、`Devices.vue:198-209`、`src/api/index.ts:131-141`）；
+     能力锚定：凡 `startDevice` / `stopDevice` / `deviceSendData` 的定义或任何调用方变更
+     同属本条（新增调用方自动落入——防文件枚举式登记再度失实）；
      （原条目「DeviceCommands.vue 的命令下发路径」系登记失实，2026-11-10 T-006 裁决① D22 修正：
      该文件是命令库 CRUD 管理页，无下发路径）
   4. 任何新增第三方依赖（供应链）。
