@@ -62,7 +62,10 @@
 - **本仓库的高风险类变更**（必须留人工复核，不得自动合并）：
   1. `src/api/index.ts` 的拦截器与凭证处理（token 读写、401 跳转逻辑，见 `src/api/index.ts:11-40`）；
   2. `Login.vue` / `Users.vue`（认证与账户）；
-  3. `DeviceCommands.vue` 的命令下发路径（可能触达真实设备）；
+  3. `Monitor.vue` 的设备数据发送路径与 `Devices.vue` 的启停操作（可能触达真实设备，
+     见 `Monitor.vue:175-183`、`Devices.vue:198-209`、`src/api/index.ts:139-141`）；
+     （原条目「DeviceCommands.vue 的命令下发路径」系登记失实，2026-11-10 T-006 裁决① D22 修正：
+     该文件是命令库 CRUD 管理页，无下发路径）
   4. 任何新增第三方依赖（供应链）。
 - 遇到无法满足的约束或检查失败：保留原始报错，报告，不得自行忽略或绕过检查。
 
