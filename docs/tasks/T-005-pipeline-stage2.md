@@ -22,12 +22,14 @@
 
 ## 4. 验收判据（照抄契约判据 + 本任务补充）【2026-11-09 owner 确认】
 
-- [ ] workflow 规格入库（`docs/workflows/pipeline-research.md`：各阶段输入/输出/格式定义，
-      从 T-004 实战反推，含耗时基准）
-- [ ] workflow 编排实现并保存（一次调用产出：RESEARCH 草稿 + 三视角分歧清单 + 裁决①票拟包）
-- [ ] 演练一次（小域侦察级）留痕——落点：本卡 §6 执行记录 + 演练产出的 RESEARCH 草稿归档 `docs/tasks/`
-- [ ] GUI 验收清单固化（T-004 §8 判据 1–6 的可重复执行版，`docs/acceptance/`）
-- [ ] gate 全绿；vitest 121 基线不破；§8 回填
+- [x] workflow 规格入库（`docs/workflows/pipeline-research.md`：各阶段输入/输出/格式定义，
+      从 T-004 实战反推，含耗时基准）——PR14（3df7108）
+- [x] workflow 编排实现并保存（`domain-coldstart`，全局 `~/.zcode/workflows/`，
+      参数 domain/requirement/repoPath）——2026-11-10
+- [x] 演练一次（CMD 域）留痕——run `dwfrun-36fdf520`，见 §6/§8；RESEARCH 草稿全文随
+      T-006 建卡归档 `docs/tasks/`（产物卡片已留存本会话）
+- [x] GUI 验收清单固化（`docs/acceptance/gui-checklist-auth.md`，含 D4 探针指针）——PR14
+- [x] gate 全绿（PR14，含一次事件未送达的空提交重触发）；vitest 121 基线不破；§8 回填（本 PR）
 
 ## 5. 范围边界【2026-11-09 owner 确认】
 
@@ -42,6 +44,9 @@
 | 日期 | 动作 | 耗时 | 备注 |
 |------|------|------|------|
 | 11-09 | 建卡：三栏 + workflow 边界（到裁决①）+ GUI 形态（文档+会话）owner 三项裁决 | 5m | owner 均采推荐 |
+| 11-09 | 规格三件套 PR14：审查 4×P2 修复（来源引用/耗时口径/D4 指针/留痕落点）后合并 3df7108 | 30m | gate 因平台事件未送达空提交重触发 ×2 |
+| 11-10 | workflow 实现并保存：`domain-coldstart`（global，3 参数：domain/requirement/repoPath） | 20m | agent；编译一次通过 |
+| 11-10 | **演练（CMD 域）**：run `dwfrun-36fdf520-4399-49ad-a79a-fb10ed6cda07`，全程 1h16m / 3.42M tokens / 零失败——考古 7m（764k）→ 三视角并行 54m（332k–713k）→ 汇总出票 15m（1.22M）；产出：候选 19 / 异常 10 / 分歧 32 / OPEN 21，主产物「CMD 域裁决①票拟包」+「RESEARCH 草稿」两张卡片 | 0（无人值守） | 演练材料即 T-006 冷启动裁决材料 |
 
 ## 7. 新增决策（实现中发现契约没写的，等人确认后回填契约）
 
@@ -51,12 +56,20 @@
 
 ### 可自动判据（命令 / 脚本；逐步固化为 GUI 自动化）
 
--
+- [x] workflow 演练一次成功：run `dwfrun-36fdf520` completed，3 阶段 10 步零失败，
+      发布 2 张产物卡片（票拟包 16KB 主产物 + RESEARCH 草稿 23KB）✅ 2026-11-10
+- [x] 规格与 GUI 清单入库（PR14）；gate 绿；vitest 121 基线不破 ✅
 
 ### 人工判据（步骤化；视觉 / 手感 / 联调必须人眼）
 
--
+- 无独立人工判据（流程任务，无 UI 交付）；**票拟包可用性将在 T-006 裁决①实测**——
+  演练产物卡片即 T-006 的裁决材料，owner 批红即完成验证闭环。
 
 ### 运行反馈
 
--
+- 演练实测（CMD 域，1h16m / 3.42M tokens 无人值守）：产出密度高于 AUTH 手工流程
+  （候选 19 vs 14、分歧 32 条且含跨域同判提醒 Q9/K4、新实测发现 D14 波及面上调）。
+- 成本观察：三视角段 wall 54m、汇总出票员单点 1.22M tokens——**优化候选**：汇总改由
+  调用会话执行（省一个大子代理）或压缩三视角 deliverable 长度；记入 T-006 复盘再定。
+- 平台观察：GitHub push 事件两次未送达致 gate 不触发（空提交重触发解决）——已两次，
+  若再现建议查平台状态页；branch protection 均正确拦截了无检查合并。
