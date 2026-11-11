@@ -47,7 +47,7 @@
 | 11-09 | 规格三件套 PR14：审查 4×P2 修复（来源引用/耗时口径/D4 指针/留痕落点）后合并 3df7108 | 30m | gate 因平台事件未送达空提交重触发 ×2 |
 | 11-10 | workflow 实现并保存：`domain-coldstart`（global，3 参数：domain/requirement/repoPath） | 20m | agent；编译一次通过 |
 | 11-10 | **演练（CMD 域）**：run `dwfrun-36fdf520-4399-49ad-a79a-fb10ed6cda07`，全程 1h16m / 3.42M tokens / 零失败——考古 7m（764k）→ 三视角并行 54m（332k–713k）→ 汇总出票 15m（1.22M）；产出：候选 19 / 异常 10 / 分歧 32 / OPEN 21，主产物「CMD 域裁决①票拟包」+「RESEARCH 草稿」两张卡片 | 0（无人值守） | 演练材料即 T-006 冷启动裁决材料 |
-| 11-11 | **v2 优化落地**（§8 复盘三项，T-006 实战验证后）：汇总出票回归调用会话（砍 1.22M tokens 汇总子代理）+ 起跑钉基线（git rev-parse 注入全 prompt）+ 三视角交付压缩铁律（≤4000 字/引编号/每条一句）；全局 `domain-coldstart` 重存覆盖，规格 pipeline-research.md 同步修订（本 PR） | 25m | agent；待 DEV 域冷启动实测 v2 |
+| 11-11 | **v2 优化落地**（§8 复盘两项 + T-006 基线漂移教训一项，T-006 实战验证后）：汇总出票回归调用会话（砍 1.22M tokens 汇总子代理）+ 起跑钉基线（git rev-parse 注入全 prompt）+ 三视角交付压缩铁律（≤4000 字/引编号/每条一句）；全局 `domain-coldstart` 重存覆盖，规格 pipeline-research.md 同步修订（本 PR） | 25m | agent；待 DEV 域冷启动实测 v2 |
 
 ## 7. 新增决策（实现中发现契约没写的，等人确认后回填契约）
 
