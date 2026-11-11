@@ -75,7 +75,7 @@ export function buildChangePasswordPayload(
 export type Headers = Record<string, string>
 
 /** [AUTH-03] 有 token 附加 Bearer 头；无/空 token 不附加空头；不覆盖既有头。 */
-export function attachAuthHeader(headers: Headers, token: string | null | undefined): Headers {
+export function attachAuthHeader(headers: Record<string, string>, token: string | null | undefined): Record<string, string> {
   if (!token) return { ...headers }
   return { ...headers, Authorization: `Bearer ${token}` }
 }

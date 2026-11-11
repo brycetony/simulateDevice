@@ -14,10 +14,10 @@ router.beforeEach((to, _from, next) => {
   const userRole = localStorage.getItem('userRole') || ''
 
   const decision = resolveGuard(to.path, to.meta.roles, token, userRole)
-  if (decision.allow) {
-    next()
-  } else {
+  if ('redirect' in decision) {
     next(decision.redirect)
+  } else {
+    next()
   }
 })
 

@@ -73,7 +73,7 @@ import { ElMessage } from 'element-plus'
 import { useDateFormat } from '@vueuse/core'
 import { useRouter, useRoute } from 'vue-router'
 import { getDevice, deviceSendData } from '@/api'
-import { FormInstance } from 'element-plus'
+import type { FormInstance } from 'element-plus'
 
 interface LogData {
   address: string
