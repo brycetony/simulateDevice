@@ -80,14 +80,12 @@
         </el-form-item>
         <el-form-item label="命令类型" prop="commandType">
           <el-select v-model="commandForm.commandType" placeholder="请选择命令类型" style="width: 100%">
-            <el-option label="GET" value="GET" />
-            <el-option label="SET" value="SET" />
+            <el-option v-for="t in COMMAND_TYPES" :key="t" :label="t" :value="t" />
           </el-select>
         </el-form-item>
         <el-form-item label="码流类型" prop="streamType">
           <el-select v-model="commandForm.streamType" placeholder="请选择码流类型" style="width: 100%">
-            <el-option label="ASCII" value="ASCII" />
-            <el-option label="HEX" value="HEX" />
+            <el-option v-for="t in STREAM_TYPES" :key="t" :label="t" :value="t" />
           </el-select>
         </el-form-item>
         <el-form-item label="请求码流" prop="reqStream">
@@ -125,8 +123,7 @@
                   :rules="{ required: true, message: '请输入参数类型', trigger: 'blur' }"
                 >
                   <el-select v-model="param.paramType" placeholder="请选择参数类型" style="width: 100%">
-                    <el-option label="string" value="string" />
-                    <el-option label="number" value="number" />
+                    <el-option v-for="t in PARAM_TYPES" :key="t" :label="t" :value="t" />
                   </el-select>
                 </el-form-item>
               </el-col>
@@ -200,28 +197,21 @@ import type { FormInstance } from 'element-plus'
 import { getDeviceCommands, addCommand, editCommand, deleteCommand } from '@/api'
 import type { QueryParams } from '@/types/api'
 import Pagination from '@/components/Pagination.vue'
-
-interface CommandParam {
-  paramName: string
-  paramType: string
-  paramKey: string
-  paramLabel: string
-  paramLength: number
-  paramValue: string
-  isUnique: boolean
-}
-
-interface CommandForm {
-  _id?: string
-  deviceId: string
-  commandName: string
-  commandType: string
-  streamType: string
-  reqStream: string
-  resStream: string
-  storeKey: string
-  params: CommandParam[]
-}
+import {
+  COMMAND_TYPES,
+  STREAM_TYPES,
+  PARAM_TYPES,
+  type CommandForm,
+  buildEmptyCommandForm,
+  buildManualParam,
+  buildCommandPayload,
+  resetCommandForm,
+  syncParams,
+  validateCommandForm,
+  validateCommandParam,
+  isUserCancelled,
+  consumeListResponse,
+} from '@/utils/commands'
 
 const router = useRouter()
 const route = useRoute()
@@ -240,16 +230,7 @@ const pageSize = ref(10)
 const total = ref(0)
 const searchQuery = ref('')
 
-const commandForm = reactive<CommandForm>({
-  deviceId,
-  commandName: '',
-  commandType: '',
-  streamType: '',
-  reqStream: '',
-  resStream: '',
-  storeKey: '',
-  params: []
-})
+const commandForm = reactive<CommandForm>(buildEmptyCommandForm(deviceId))
 
 const rules = {
   commandName: [
@@ -280,10 +261,12 @@ const fetchCommandList = async () => {
       search: searchQuery.value
     }
     const res = await getDeviceCommands(params)
-    commandList.value = res.data.items;
-    total.value = res.data.total
-  } catch (error: any) {
-    ElMessage.error(error.message || '获取命令列表失败')
+    // CMD-09：只读 data.items/total，code 零消费（决策在 utils/commands.ts）
+    const list = consumeListResponse(res)
+    commandList.value = list.items as CommandForm[]
+    total.value = list.total
+  } catch {
+    // F-13：失败原因已由拦截器统一 toast（AUTH-05），不再二次弹窗
   } finally {
     loading.value = false
   }
@@ -325,46 +308,21 @@ const handleDelete = async (row: CommandForm) => {
     await deleteCommand(row._id as string)
     ElMessage.success('删除成功')
     fetchCommandList()
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.message || '删除失败')
-    }
+  } catch (error) {
+    // CMD-08/F-13/D13：用户取消静默（isUserCancelled 谓词，替代原弱类型比较）；
+    // API 失败已由拦截器单点 toast，不再二次弹窗
+    if (isUserCancelled(error)) return
   }
 }
 
-// 处理请求码流变化
+// 处理请求码流变化（CMD-05/06 版本 B，D14/D15/D16——解析与联动决策在 utils/commands.ts）
 const handleReqStreamChange = (value: string) => {
-  const matches = value.match(/\[\$(.+)\|(.+)\]/g) 
-  if (matches) {
-    matches.forEach(match => {
-      const paramLabel = match
-      const paramIndex = commandForm.params.findIndex(param => param.paramLabel === paramLabel)
-      if (paramIndex === -1) {
-        commandForm.params.push({
-          paramName: '',
-          paramType: 'string',
-          paramKey: '',
-          paramLabel: paramLabel,
-          paramLength: 1,
-          paramValue: '',
-          isUnique: false
-        })
-      }
-    })
-  }
+  commandForm.params = syncParams(value, commandForm.params)
 }
 
-// 添加参数
+// 添加参数（CMD-02：手工种子）
 const addParam = () => {
-  commandForm.params.push({
-    paramName: '',
-    paramType: '',
-    paramKey: '',
-    paramLabel: '',
-    paramLength: 1,
-    paramValue: '',
-    isUnique: false
-  })
+  commandForm.params.push(buildManualParam())
 }
 
 // 删除参数
@@ -375,46 +333,46 @@ const removeParam = (index: number) => {
 // 提交表单
 const handleSubmit = async () => {
   if (!commandFormRef.value) return
-  
+
   await commandFormRef.value.validate(async (valid) => {
     if (valid) {
+      // CMD-04 契约校验（纯函数为生效路径，与 el-form 规则双轨对齐——分歧即缺陷）
+      const errors = [
+        ...validateCommandForm(commandForm),
+        ...commandForm.params.flatMap(validateCommandParam),
+      ]
+      if (errors.length > 0) {
+        ElMessage.error(errors[0].message)
+        return
+      }
       submitting.value = true
       try {
-        if (commandForm._id) {
-          await editCommand(commandForm)
+        // CMD-07：分流与 add 载荷 _id 显式剥离（Q16）在 buildCommandPayload
+        const { mode, payload } = buildCommandPayload(commandForm)
+        if (mode === 'edit') {
+          await editCommand(payload)
           ElMessage.success('编辑成功')
         } else {
-          await addCommand(commandForm) 
+          await addCommand(payload)
           ElMessage.success('新增成功')
         }
         dialogVisible.value = false
         fetchCommandList()
-      } catch (error: any) {
-        ElMessage.error(error.message || '操作失败')
+      } catch {
+        // F-13：失败原因已由拦截器统一 toast，不再吞掉也不再重复弹窗
       } finally {
         submitting.value = false
       }
-
     }
   })
 }
 
-// 重置表单
+// 重置表单（CMD-02：reset 终态在 utils/commands.ts，deviceId 保留）
 const resetForm = () => {
   if (commandFormRef.value) {
     commandFormRef.value.resetFields()
   }
-  Object.assign(commandForm, {
-    _id: undefined,
-    deviceId,
-    commandName: '',
-    commandType: '',
-    streamType: '',
-    reqStream: '',
-    resStream: '',
-    storeKey: '',
-    params: []
-  })
+  Object.assign(commandForm, resetCommandForm(deviceId))
 }
 
 onMounted(() => {

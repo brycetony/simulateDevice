@@ -1,7 +1,9 @@
 # 历史故障库（F-xx）
 
-- 编号规则（T-004 裁决）：ID 与考古缺陷候选 D 编号一一对应，**仅确认修复项占号；
-  否决/未决项空缺保留**（防 ID 漂移，否决记 ADR 于 `docs/decisions/`——落点随批 1b 定）。
+- 编号规则（T-004 裁决；T-006 裁决②③修订）：**仅确认修复项占号；否决/未决项空缺保留**
+  （防 ID 漂移，否决记 ADR 于 `docs/decisions/`）。AUTH 域先例 D1-D12 与 F-01..F-12 一一对应；
+  自 CMD 域起 D 编号全局续排（D13+）、F 按确认修复登记顺序分配——D13 随 D17 消解、
+  D14/D15/D16 判据随契约测试落地（commands.md CMD-05/06），均不占 F 号（PR16 审查 P1）。
 - 来源：`docs/tasks/RESEARCH-auth-2026-11-09.md` D 表（2026-11-09 裁决①，owner 批复「全推荐」）。
 - 回归测试文件头必须声明本库条目 ID（AGENTS.md §2，gate 溯源校验）。
 
@@ -78,3 +80,15 @@
   无防御，非法 JSON 即整个 Layout 白屏。
 - 修复判据：`parseUserInfo` 对 null/非法 JSON/非对象输入返回 `{}` 不抛错。
 - 回归测试：tests/faults/test_f_12.test.ts
+
+## F-13 CMD 侧调用方二次弹窗（D17）[确认修复·T-006 批 2]
+
+- 现状：DeviceCommands.vue 三处 catch 自弹 `ElMessage.error(error.message || 中文兜底)`
+  （修复前 :286,330,393），叠加拦截器单点 toast（AUTH-05）= 双弹窗；D13（原 :329 弱类型
+  `error !== 'cancel'`）随本条消解——比较整体被 isUserCancelled 谓词取代（CMD-08）。
+- 来源：CMD 域冷启动裁决①（2026-11-10，「全推荐」）；F-01/F-11 同型扩 CMD 侧，
+  裁决③新开 F-13（不作 F-11 批注，防掩埋范围演变史）。
+- 修复判据：三处调用方 ElMessage.error 移除，错误提示单点归拦截器；用户取消静默
+  （GUI 人工判据：制造 API 失败仅一弹——docs/acceptance/gui-checklist-cmd.md 第 3 条）。
+- 回归测试：拦截器单点见 tests/faults/test_f_01.test.ts；取消分流谓词见
+  tests/contracts/test_cmd_08.test.ts；DeviceCommands 接线属组件层，人工/GUI 判据覆盖。
