@@ -21,6 +21,12 @@
 
 - `@types/vue@^2` （Vue 2 类型包）疑似误装于 devDependencies——本次不动
   （skipLibCheck 掩盖无害；删除属依赖变更 §3.4 高风险，点名才做）
+- **esbuild 转码目标隐式漂移**（PR22 审查 P2）：根 solution 化后 esbuild/vite 不再读到旧根
+  tsconfig 的 target ES2021（它只认 tsconfig.json 文件名，现根为纯 solution）——本仓 src 零
+  class/装饰器无可触发差异（build+162 全绿实证），但引入 class fields/装饰器前须显式钉住
+  vite 侧 esbuild target；批 2 或后续任务裁决
+- **utils/auth.ts:75 `export type Headers` 成死导出**（PR22 审查 P2）：签名内联后零引用方，
+  按「OUT 风格性重构」保守保留——下个触及 auth.ts 的任务裁决去留
 
 ## 4. 验收判据
 
