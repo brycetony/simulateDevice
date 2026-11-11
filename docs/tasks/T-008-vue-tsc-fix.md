@@ -50,6 +50,8 @@
 | 日期 | 动作 | 耗时 | 备注 |
 |------|------|------|------|
 | 11-11 | 复现（TS6306/6310）→ tsconfig 三件套重构（根 solution 化，app 收编 src + paths，node 补 composite）→ 逼出并修复 9 处真实类型错误（**本仓首次全量类型检查**）；build 10.2s + 162/162 | 35m | agent |
+| 11-11 | PR22 审查（兼 §3.1 人工复核）：0×P0+0×P1+2×P2（esbuild target 隐式漂移/Headers 死导出，挂 §3）——axios dispatchRequest 源码实证 headers 再归一；**待 owner 人批合并** | 8m | code-reviewer |
+| 11-11 | 批 2：gate.yml 增类型检查步骤（vue-tsc -b，npm ci 后测试前——比测试便宜） | 5m | agent；改 CI 须人批 |
 
 ## 7. 新增决策（实现中发现契约没写的，等人确认后回填契约）
 
