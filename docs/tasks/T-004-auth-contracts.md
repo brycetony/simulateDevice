@@ -78,7 +78,7 @@
 | 11-09 | 批 1b 执行：拦截器/守卫/会话接线 + D2/D3/D5/D6/D8/D12 修复 + 适配器级测试；两次超尺寸（855/816）经拆分与公共桩去重收敛 788；vitest 100/100 | 55m | agent |
 | 11-09 | PR10（批 1b）四样审查：0×P0+0×P1+4×P2（AUTH-14 路径回填/F-11 状态标注/卡执行行/Login 畸形响应兜底），全修后合并；AUTH-03 端到端 header 捕获测试补入批 2 | 10m | code-reviewer；axios headers 机制已实证 |
 | 11-09 | 批 2 执行：utils/users.ts 纯函数（枚举/superadmin 谓词/校验/状态翻转）+ Users.vue 接线（D10 回滚、D1/D6/D11 Users 侧、AUTH-11 谓词化）+ 测试 6 文件 + AUTH-03 端到端 + decisions 目录落点（PR6 遗留 P2）；D4 按裁决不修（探针挪至 §8 人工判据） | 45m | agent |
-| 11-09 | PR11（批 2）四样审查：1×P1（email 双轨不一致——防同源审查实证）+1×P2，修复后合并 2fd6da7；累计四 PR 审查 2×P1+16×P2 全修复 | 10m | code-reviewer；element-plus/async-validator 源码实证 |
+| 11-09 | PR11（批 2）四样审查：1×P1（email 双轨不一致——防同源审查实证）+1×P2，修复后合并 2fd6da7；累计四 PR 审查 2×P1+15×P2 全修复（2026-11-11 核正：原记 16 系转写漂移，逐行合计 5+5+4+1=15——PR20 审查附注） | 10m | code-reviewer；element-plus/async-validator 源码实证 |
 | 11-09 | owner 整体验收：§8 七条人工判据 7/7 通过（含 D4 探针关闭 → ADR） | 10m | owner；**T-004 Done** |
 
 ## 7. 新增决策（实现中发现契约没写的，等人确认后回填契约）
