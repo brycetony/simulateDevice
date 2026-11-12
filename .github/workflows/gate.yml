@@ -72,5 +72,8 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22", cache: "npm" }
       - run: npm ci
+      # 类型检查（T-008）：与本地 npm run build 同口径；比测试便宜，放测试前
+      - name: 类型检查（vue-tsc -b，T-008）
+        run: npx vue-tsc -b
       - name: 契约测试 + 历史故障回归（一票否决）
         run: npx vitest run tests/contracts tests/faults
