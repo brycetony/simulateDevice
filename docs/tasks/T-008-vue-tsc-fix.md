@@ -38,7 +38,7 @@
 ## 5. 范围边界
 
 - IN：tsconfig 三件套重构（根 solution 化 / app 收编 src 检查 + `@/` paths /
-  node 补 composite）、9 处类型错误修复（类型级零运行时变更，清单见 PR）、
+  node 补 composite）、8 处类型错误（错误实例口径；位置 5 处）修复（类型级零运行时变更，清单见 PR）、
   gate.yml 类型检查步骤（批 2）
 - OUT：任何运行时行为变更、风格性重构、@types/vue 清理、vitest 的 tsconfig 接入
   （vitest 走 vite 别名解析，现状正确）
@@ -49,7 +49,7 @@
 
 | 日期 | 动作 | 耗时 | 备注 |
 |------|------|------|------|
-| 11-11 | 复现（TS6306/6310）→ tsconfig 三件套重构（根 solution 化，app 收编 src + paths，node 补 composite）→ 逼出并修复 9 处真实类型错误（**本仓首次全量类型检查**）；build 10.2s + 162/162 | 35m | agent |
+| 11-11 | 复现（TS6306/6310）→ tsconfig 三件套重构（根 solution 化，app 收编 src + paths，node 补 composite）→ 逼出并修复 8 处真实类型错误（错误实例口径；位置 5 处——初检记 9 系误计，PR24 审查重构现场复现为 8）（**本仓首次全量类型检查**）；build 10.2s + 162/162 | 35m | agent |
 | 11-11 | PR22 审查（兼 §3.1 人工复核）：0×P0+0×P1+2×P2（esbuild target 隐式漂移/Headers 死导出，挂 §3）——axios dispatchRequest 源码实证 headers 再归一；**待 owner 人批合并** | 8m | code-reviewer |
 | 11-11 | 批 2：gate.yml 增类型检查步骤（vue-tsc -b，npm ci 后测试前——比测试便宜） | 5m | agent；改 CI 须人批 |
 | 11-12 | owner 人批 → PR22（ea20053）/ PR23（f79022f）依序合并；master 复验 build + 162/162 全绿 | — | owner 1 次 + agent |
@@ -69,7 +69,7 @@
 - [x] gate 含类型检查步骤且全绿（PR23 终态 run 29s 实证；gate 仅 pull_request 触发，master 无直接 run——以合并 PR 的绿 run 为证据口径）✅
 
 ### 人工判据
-- 无独立 GUI 判据（工程变更）；高风险 1 行（api/index.ts:22 断言）经 PR22 审查（axios dispatchRequest 源码实证）+ owner 人批覆盖 ✅
+- 无独立 GUI 判据（工程变更）；高风险 1 行（api/index.ts:24 断言（PR22 前行号 :22，加注后移））经 PR22 审查（axios dispatchRequest 源码实证）+ owner 人批覆盖 ✅
 
 ### 运行反馈
 - 本仓**首次**全量类型检查即逼出 9 处真实错误（含 1 处签名与调用侧本就不兼容、1 处联合类型误访问、1 处渲染期可抛 TypeError 的 unknown 访问）——印证「类型检查进 CI」的必要性：这些错误全部存活于已合并的 162 绿基线上，纯靠 vitest 与人眼拦截不住。
