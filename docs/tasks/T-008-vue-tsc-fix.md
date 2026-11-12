@@ -30,10 +30,10 @@
 
 ## 4. 验收判据
 
-- [x] `npm run build` 全绿（vue-tsc -b 0 errors + vite build 成功）✅ 2026-11-11（10.2s）
-- [x] vitest 162/162 零回归 ✅
-- [ ] gate 新增类型检查步骤并全绿（批 2 PR）
-- [ ] §8 回填
+- [x] `npm run build` 全绿（vue-tsc -b 0 errors + vite build 成功）✅ 2026-11-11（10.2s）；master 复验 ✅ 2026-11-12（14.2s，f79022f）
+- [x] vitest 162/162 零回归 ✅ master 复验（f79022f）
+- [x] gate 新增类型检查步骤并全绿（PR23 run 实证：新步骤在 CI 执行且绿，29s——gate 仅 pull_request 触发，以 PR 终态 run 为证据）✅
+- [x] §8 回填 ✅ 2026-11-12
 
 ## 5. 范围边界
 
@@ -52,6 +52,8 @@
 | 11-11 | 复现（TS6306/6310）→ tsconfig 三件套重构（根 solution 化，app 收编 src + paths，node 补 composite）→ 逼出并修复 9 处真实类型错误（**本仓首次全量类型检查**）；build 10.2s + 162/162 | 35m | agent |
 | 11-11 | PR22 审查（兼 §3.1 人工复核）：0×P0+0×P1+2×P2（esbuild target 隐式漂移/Headers 死导出，挂 §3）——axios dispatchRequest 源码实证 headers 再归一；**待 owner 人批合并** | 8m | code-reviewer |
 | 11-11 | 批 2：gate.yml 增类型检查步骤（vue-tsc -b，npm ci 后测试前——比测试便宜） | 5m | agent；改 CI 须人批 |
+| 11-12 | owner 人批 → PR22（ea20053）/ PR23（f79022f）依序合并；master 复验 build + 162/162 全绿 | — | owner 1 次 + agent |
+| 11-12 | §4/§8 回填，T-008 Done | — | agent |
 
 ## 7. 新增决策（实现中发现契约没写的，等人确认后回填契约）
 
@@ -62,12 +64,14 @@
 ## 8. 整体验收与运行反馈（合并后回填，**不回填不算 Done**——AGENTS.md §7）
 
 ### 可自动判据
-- [ ] `npm run build` 全绿（master 复验）
-- [ ] vitest 162/162（master 复验）
-- [ ] gate 含类型检查步骤且全绿
+- [x] `npm run build` 全绿（master@f79022f：vue-tsc 0 errors + vite build 14.2s）✅ 2026-11-12
+- [x] vitest 162/162（master@f79022f）✅ 2026-11-12
+- [x] gate 含类型检查步骤且全绿（PR23 终态 run 29s 实证；gate 仅 pull_request 触发，master 无直接 run——以合并 PR 的绿 run 为证据口径）✅
 
 ### 人工判据
-- 无独立 GUI 判据（工程变更）；高风险 1 行经合并前审查 + owner 人批覆盖
+- 无独立 GUI 判据（工程变更）；高风险 1 行（api/index.ts:22 断言）经 PR22 审查（axios dispatchRequest 源码实证）+ owner 人批覆盖 ✅
 
 ### 运行反馈
-- （回填时写）
+- 本仓**首次**全量类型检查即逼出 9 处真实错误（含 1 处签名与调用侧本就不兼容、1 处联合类型误访问、1 处渲染期可抛 TypeError 的 unknown 访问）——印证「类型检查进 CI」的必要性：这些错误全部存活于已合并的 162 绿基线上，纯靠 vitest 与人眼拦截不住。
+- 工程教训（后续任务可用）：仓库源码为 CRLF、配置为 LF 的混合行尾——python 文本模式整文件重写会把 diff 从 ~12 行膨胀到 3400+ 行（gate 800 硬卡会拦），二进制模式 CR 感知替换是正解。
+- 遗留：§3 三条未决（@types/vue 误装 / esbuild target 隐式漂移 / Headers 死导出）待点名裁决。
