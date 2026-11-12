@@ -54,7 +54,7 @@
           <el-dropdown>
             <span class="el-dropdown-link">
               <el-avatar :size="32" class="user-avatar">
-                {{ userInfo.username?.charAt(0)?.toUpperCase() }}
+                {{ String(userInfo.username ?? '').charAt(0).toUpperCase() }}
               </el-avatar>
               <span class="username">{{ userInfo.username }}</span>
               <el-icon class="el-icon--right"><arrow-down /></el-icon>

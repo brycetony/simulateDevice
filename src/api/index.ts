@@ -19,7 +19,9 @@ export const instance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token')
-    config.headers = attachAuthHeader({ ...config.headers }, token)
+    // 类型注记：拦截器内 headers 已归一为 AxiosHeaders；attachAuthHeader 返回普通记录
+    // （utils 边界禁止 import axios），axios 侧会再次归一，断言只对齐类型不改行为
+    config.headers = attachAuthHeader({ ...config.headers }, token) as typeof config.headers
     return config
   },
   (error) => {

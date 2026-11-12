@@ -316,6 +316,7 @@ import {
   generatePassword, generateHash, encryptText, decryptText,
   encodeBase64, decodeBase64, highlightJson
 } from '../utils/tools'
+import type { HashAlgorithm, SymmetricAlgorithm } from '../utils/tools'
 
 const activeTab = ref('string')
 
@@ -354,7 +355,7 @@ const jsonForm = reactive({
 // 哈希生成器表单
 const hashForm = reactive({
   input: '',
-  algorithm: 'md5',
+  algorithm: 'md5' as HashAlgorithm,
   result: ''
 })
 
@@ -368,7 +369,7 @@ const passwordForm = reactive({
 // 加密解密表单
 const cryptoForm = reactive({
   mode: 'encrypt',
-  algorithm: 'aes',
+  algorithm: 'aes' as SymmetricAlgorithm,
   key: '',
   input: '',
   result: ''
